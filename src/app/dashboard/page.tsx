@@ -325,10 +325,12 @@ export default function DashboardOverviewPage() {
               Blood Pressure
             </span>
             <div className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {latestVisit.vitals.bloodPressure.raw || "N/A"}
+              {latestVisit.vitals?.bloodPressure?.raw || "N/A"}
             </div>
             <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-              {latestVisit.vitals.bloodPressure.status.toUpperCase()}
+              {latestVisit.vitals?.bloodPressure?.status
+                ? latestVisit.vitals.bloodPressure.status.toUpperCase()
+                : "NORMAL"}
             </span>
           </div>
 

@@ -24,8 +24,11 @@ export default function SettingsPrivacyPage() {
   const [nameSaved, setNameSaved] = useState(false);
   const [purgeConfirmOpen, setPurgeConfirmOpen] = useState(false);
   const [clearVisitsConfirmOpen, setClearVisitsConfirmOpen] = useState(false);
+  const [visitCount, setVisitCount] = useState(0);
 
-  const visits = getStoredVisits();
+  React.useEffect(() => {
+    setVisitCount(getStoredVisits().length);
+  }, []);
 
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +130,7 @@ export default function SettingsPrivacyPage() {
         <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-xs text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
           <Lock className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
           <p className="leading-relaxed">
-            <strong>Zero Data Selling Guarantee:</strong> Your visit documents are processed ephemerally using Google Gemini's HIPAA-aligned enterprise API. Your decoded visits are cached inside this browser's local sandbox storage ({visits.length} visit {visits.length === 1 ? "record" : "records"}). We have no server database storing your medical records.
+            <strong>Zero Data Selling Guarantee:</strong> Your visit documents are processed ephemerally using Google Gemini's HIPAA-aligned enterprise API. Your decoded visits are cached inside this browser's local sandbox storage ({visitCount} visit {visitCount === 1 ? "record" : "records"}). We have no server database storing your medical records.
           </p>
         </div>
 
@@ -158,7 +161,7 @@ export default function SettingsPrivacyPage() {
             onClick={() => setClearVisitsConfirmOpen(true)}
             className="px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 dark:hover:bg-rose-950 transition-colors"
           >
-            Clear All Stored Visits ({visits.length})
+            Clear All Stored Visits ({visitCount})
           </button>
 
           <button
@@ -178,7 +181,7 @@ export default function SettingsPrivacyPage() {
               <span>Confirm Clearing Visits</span>
             </div>
             <p className="text-slate-600 dark:text-slate-300">
-              Are you sure you want to delete all {visits.length} decoded visit summaries? This action is permanent and cannot be undone.
+              Are you sure you want to delete all {visitCount} decoded visit summaries? This action is permanent and cannot be undone.
             </p>
             <div className="flex items-center gap-2">
               <button

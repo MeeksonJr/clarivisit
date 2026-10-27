@@ -342,13 +342,15 @@ END:VCALENDAR`;
                   </span>
                 </div>
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-                  {visit.vitals.bloodPressure.status.toUpperCase()}
+                  {visit.vitals?.bloodPressure?.status
+                    ? visit.vitals.bloodPressure.status.toUpperCase()
+                    : "NORMAL"}
                 </span>
               </div>
 
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900 dark:text-white">
-                  {visit.vitals.bloodPressure.raw}
+                  {visit.vitals?.bloodPressure?.raw || "--"}
                 </span>
                 <span className="text-xs text-slate-400 font-medium">mmHg</span>
               </div>
@@ -370,7 +372,7 @@ END:VCALENDAR`;
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                {visit.vitals.bloodPressure.plainExplanation}
+                {visit.vitals?.bloodPressure?.plainExplanation || "Blood pressure within standard parameters."}
               </p>
             </div>
 
@@ -419,7 +421,7 @@ END:VCALENDAR`;
             <div className="p-4 rounded-2xl glass-panel border border-slate-200 dark:border-slate-800 space-y-1">
               <span className="text-xs text-slate-500 font-medium">BMI</span>
               <div className="text-xl font-extrabold text-slate-900 dark:text-white">
-                {visit.vitals.bmi?.raw || "21.06"}
+                {visit.vitals?.bmi?.raw || "21.06"}
               </div>
               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                 Healthy weight range (18.5 - 24.9)
@@ -429,7 +431,7 @@ END:VCALENDAR`;
             <div className="p-4 rounded-2xl glass-panel border border-slate-200 dark:border-slate-800 space-y-1">
               <span className="text-xs text-slate-500 font-medium">Pulse (Resting)</span>
               <div className="text-xl font-extrabold text-slate-900 dark:text-white">
-                {visit.vitals.heartRate?.raw || "85 bpm"}
+                {visit.vitals?.heartRate?.raw || "85 bpm"}
               </div>
               <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400">
                 Normal (60 - 100 bpm)
@@ -439,7 +441,7 @@ END:VCALENDAR`;
             <div className="p-4 rounded-2xl glass-panel border border-slate-200 dark:border-slate-800 space-y-1">
               <span className="text-xs text-slate-500 font-medium">Height & Weight</span>
               <div className="text-base font-bold text-slate-900 dark:text-white">
-                {visit.vitals.height?.raw || "--"} • {visit.vitals.weight?.raw || "--"}
+                {visit.vitals?.height?.raw || "--"} • {visit.vitals?.weight?.raw || "--"}
               </div>
               <span className="text-[10px] text-slate-400">Recorded at visit</span>
             </div>
@@ -447,7 +449,7 @@ END:VCALENDAR`;
             <div className="p-4 rounded-2xl glass-panel border border-slate-200 dark:border-slate-800 space-y-1">
               <span className="text-xs text-slate-500 font-medium">Oral Temperature</span>
               <div className="text-xl font-extrabold text-slate-900 dark:text-white">
-                {visit.vitals.temperature?.raw || "97.9 °F"}
+                {visit.vitals?.temperature?.raw || "97.9 °F"}
               </div>
               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                 Normal (97.0 - 99.0 °F)

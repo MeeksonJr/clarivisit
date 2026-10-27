@@ -13,33 +13,56 @@ import {
   Search,
   Plus,
   HeartPulse,
-  Activity
+  Activity,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AllVisitsHistoryPage() {
   const router = useRouter();
   const [visits, setVisits] = useState<ParsedVisitRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [mounted, setMounted] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const refresh = () => {
-    setVisits(getStoredVisits());
+    try {
+      const stored = getStoredVisits();
+      setVisits(stored || []);
+    } catch (e) {
+      console.error("Error reading stored visits:", e);
+      setVisits([]);
+    }
   };
 
   useEffect(() => {
+    setMounted(true);
     refresh();
     window.addEventListener("clarivisit_data_change", refresh);
     return () => window.removeEventListener("clarivisit_data_change", refresh);
   }, []);
 
   const filtered = visits.filter((v) => {
-    const q = searchTerm.toLowerCase();
+    if (!v) return false;
+    const q = (searchTerm || "").trim().toLowerCase();
+    if (!q) return true;
     return (
-      v.facilityName?.toLowerCase().includes(q) ||
-      v.providerName?.toLowerCase().includes(q) ||
-      v.visitDate?.toLowerCase().includes(q) ||
-      v.summaryExecutive?.toLowerCase().includes(q)
+      (v.facilityName || "").toLowerCase().includes(q) ||
+      (v.providerName || "").toLowerCase().includes(q) ||
+      (v.visitDate || "").toLowerCase().includes(q) ||
+      (v.summaryExecutive || "").toLowerCase().includes(q)
     );
   });
+
+  if (!mounted) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-600 dark:text-sky-400" />
+        <p className="text-xs text-slate-500 font-medium">Loading visit history...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -53,13 +76,13 @@ export default function AllVisitsHistoryPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 shadow-sm"
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Upload Another Visit</span>
-        </button>
+        </Link>
       </div>
 
       {visits.length > 0 && (
@@ -89,30 +112,30 @@ export default function AllVisitsHistoryPage() {
               : "Try adjusting your search keywords."}
           </p>
           {visits.length === 0 && (
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500"
+            <Link
+              href="/dashboard"
+              className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Upload First Summary</span>
-            </button>
+            </Link>
           )}
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((v) => (
+          {filtered.map((v, idx) => (
             <div
-              key={v.id}
+              key={v.id || `visit-${idx}`}
               className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-sky-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
             >
               <div className="space-y-1.5 flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-sky-600 dark:text-sky-400">
-                    {v.visitDate}
+                    {v.visitDate || "Recent Visit"}
                   </span>
                   <span className="text-[10px] text-slate-400">•</span>
                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">
-                    {v.providerName} {v.providerTitle ? `(${v.providerTitle})` : ""}
+                    {v.providerName || "Physician"} {v.providerTitle ? `(${v.providerTitle})` : ""}
                   </span>
                 </div>
 
@@ -121,37 +144,33 @@ export default function AllVisitsHistoryPage() {
                 </h3>
 
                 <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 max-w-2xl">
-                  {v.summaryExecutive}
+                  {v.summaryExecutive || "Visit records indexed into local health vault."}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
                   <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
-                    BP: {v.vitals.bloodPressure.raw}
+                    BP: {v.vitals?.bloodPressure?.raw || "--"}
                   </span>
                   <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                     Labs Ordered: {v.labOrders?.length || 0}
                   </span>
                   <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
-                    BMI: {v.vitals.bmi?.raw || "--"}
+                    BMI: {v.vitals?.bmi?.raw || "--"}
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => router.push(`/dashboard/visits/${v.id}`)}
+                <Link
+                  href={`/dashboard/visits/${v.id}`}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 transition-colors"
                 >
                   <span>View Details</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                </Link>
 
                 <button
-                  onClick={() => {
-                    if (confirm("Delete this visit record?")) {
-                      deleteVisit(v.id);
-                    }
-                  }}
+                  onClick={() => setDeleteTargetId(v.id)}
                   className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                   title="Delete record"
                 >
@@ -160,6 +179,40 @@ export default function AllVisitsHistoryPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal (no blocking native alert) */}
+      {deleteTargetId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 shadow-xl">
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                Delete Visit Record?
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Are you sure you want to delete this after-visit summary from your browser vault? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setDeleteTargetId(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteVisit(deleteTargetId);
+                  setDeleteTargetId(null);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition-colors"
+              >
+                Delete Record
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
