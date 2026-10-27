@@ -70,6 +70,32 @@ export interface WorkoutBlock {
   description: string;
 }
 
+export interface RecipeItem {
+  id: string;
+  title: string;
+  description: string;
+  clinicianRationale: string;
+  mealType: "dinner" | "lunch" | "breakfast" | "snack";
+  prepTimeMinutes: number;
+  cookTimeMinutes: number;
+  servings: number;
+  calories: number;
+  macros: {
+    proteinGrams: number;
+    netCarbsGrams: number;
+    fiberGrams: number;
+    fatGrams: number;
+  };
+  glycemicIndex: "low" | "medium" | "high";
+  tags: string[];
+  ingredients: Array<{
+    item: string;
+    amount: string;
+    category: "produce" | "protein" | "grain" | "pantry";
+  }>;
+  instructions: string[];
+}
+
 export interface LifestylePrescription {
   doctorDirectivesRaw: string;
   weeklyExerciseTargetMinutes: number;
@@ -84,6 +110,7 @@ export interface LifestylePrescription {
     wholeGrains: string[];
     beverages: string[];
   };
+  recipes?: RecipeItem[];
 }
 
 export interface PreventiveCareItem {

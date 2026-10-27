@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { ParsedVisitRecord } from "@/types/visit";
+import { DEFAULT_CLINICAL_RECIPES } from "@/lib/recipes";
 
 const CANDIDATE_MODELS = [
   "gemini-flash-lite-latest",
@@ -276,6 +277,9 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
     }
     if (!parsed.createdAt) {
       parsed.createdAt = new Date().toISOString();
+    }
+    if (parsed.lifestyle && (!parsed.lifestyle.recipes || parsed.lifestyle.recipes.length === 0)) {
+      parsed.lifestyle.recipes = DEFAULT_CLINICAL_RECIPES;
     }
 
     return parsed;

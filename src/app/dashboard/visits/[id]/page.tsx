@@ -3,7 +3,10 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getVisitById, deleteVisit } from "@/lib/storage";
-import { ParsedVisitRecord } from "@/types/visit";
+import { ParsedVisitRecord, RecipeItem } from "@/types/visit";
+import { RecipeCard } from "@/components/RecipeCard";
+import { RecipeModal } from "@/components/RecipeModal";
+import { DEFAULT_CLINICAL_RECIPES } from "@/lib/recipes";
 import {
   HeartPulse,
   Activity,
@@ -27,7 +30,8 @@ import {
   MapPin,
   Clock,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChefHat,
 } from "lucide-react";
 
 function VisitDetailsContent() {
@@ -50,6 +54,7 @@ function VisitDetailsContent() {
   ]);
   const [chatLoading, setChatLoading] = useState(false);
   const [copiedDraft, setCopiedDraft] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<RecipeItem | null>(null);
 
   useEffect(() => {
     if (visitId) {
@@ -652,6 +657,41 @@ END:VCALENDAR`;
               </div>
             </div>
           </div>
+
+          {/* Chef-Crafted Doctor Compliant Recipes */}
+          <div className="space-y-4 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <ChefHat className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                  Doctor-Compliant Chef Recipes
+                </h3>
+              </div>
+              <button
+                onClick={() => router.push("/dashboard/lifestyle")}
+                className="text-xs font-semibold text-teal-600 hover:text-teal-500 hover:underline flex items-center gap-1 self-start sm:self-auto"
+              >
+                <span>Customize & Open Meal Studio</span>
+                <span>→</span>
+              </button>
+            </div>
+            <p className="text-xs text-slate-500">
+              Low-glycemic, fiber-rich meals created to fulfill {visit.providerName}'s dietary guidance.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(visit.lifestyle?.recipes && visit.lifestyle.recipes.length > 0
+                ? visit.lifestyle.recipes
+                : DEFAULT_CLINICAL_RECIPES
+              ).map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  onOpen={(rec) => setSelectedRecipe(rec)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -773,6 +813,12 @@ END:VCALENDAR`;
           </form>
         </div>
       )}
+
+      {/* Recipe Details Modal */}
+      <RecipeModal
+        recipe={selectedRecipe}
+        onClose={() => setSelectedRecipe(null)}
+      />
     </div>
   );
 }

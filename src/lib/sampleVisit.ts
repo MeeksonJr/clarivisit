@@ -1,4 +1,5 @@
 import { ParsedVisitRecord } from "@/types/visit";
+import { DEFAULT_CLINICAL_RECIPES } from "@/lib/recipes";
 
 export const SAMPLE_VISIT_RECORD: ParsedVisitRecord = {
   id: "demo-visit-sample",
@@ -227,6 +228,7 @@ export const SAMPLE_VISIT_RECORD: ParsedVisitRecord = {
       wholeGrains: ["Quinoa", "Rolled oats", "Brown jasmine rice", "Chickpea pasta"],
       beverages: ["Spring water", "Organic green tea", "Sparkling mineral water"],
     },
+    recipes: DEFAULT_CLINICAL_RECIPES,
   },
   preventiveCare: [
     {
