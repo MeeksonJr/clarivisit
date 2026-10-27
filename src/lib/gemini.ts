@@ -43,7 +43,7 @@ CRITICAL INSTRUCTIONS:
 2. NO PLACEHOLDER OR FAKE VALUES. If a vital is not present, mark it as null.
 3. REASSURANCE & HEALTH LITERACY:
    - For any routine screening codes (like "Encounter for screening involving social determinants of health", "Screening for endocrine, nutritional, metabolic and immunity disorder", or "Pre-diabetes" listed under routine annual check), clearly explain that this is routine preventive screening for insurance/ordering purposes, NOT an alarmist diagnosis.
-   - Blood pressure: evaluate the reading (e.g. 105/63 is "optimal", not dangerously low unless symptomatic).
+   - Blood pressure: evaluate the reading (e.g. 118/76 is "optimal", not dangerously low unless symptomatic).
    - Oxygen saturation: standard is 95-100%. 94% is borderline-normal, often due to cold fingers or shallow breathing.
    - BMI: compute or transcribe accurately and describe the healthy range.
 4. ACTIONABLE NUTRITION & EXERCISE:
@@ -64,21 +64,21 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
   "visitDate": "Date of visit or today's date",
   "providerName": "Provider name",
   "providerTitle": "e.g., FNP-C, MD, DO",
-  "facilityName": "e.g., Amelia Medical Associates, Bon Secours",
+  "facilityName": "e.g., Evergreen Health Family Clinic",
   "facilityAddress": "Address if visible",
   "contactPhone": "Phone number if visible",
   "summaryExecutive": "A 2-3 sentence executive overview summarizing the visit in encouraging, plain language.",
   "vitals": {
     "bloodPressure": {
-      "raw": "e.g. 105/63",
-      "systolic": 105,
-      "diastolic": 63,
+      "raw": "e.g. 118/76",
+      "systolic": 118,
+      "diastolic": 76,
       "status": "optimal",
       "plainExplanation": "Clear explanation of what this BP reading means."
     },
     "heartRate": {
-      "raw": "85 bpm",
-      "value": 85,
+      "raw": "72 bpm",
+      "value": 72,
       "unit": "bpm",
       "status": "normal",
       "label": "Heart Rate",
@@ -86,17 +86,17 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "normalRangeText": "60 - 100 bpm"
     },
     "oxygenSaturation": {
-      "raw": "94%",
-      "value": 94,
+      "raw": "98%",
+      "value": 98,
       "unit": "%",
-      "status": "watch",
+      "status": "normal",
       "label": "Oxygen Saturation (SpO2)",
-      "plainExplanation": "Slightly on the borderline of the standard 95-100% range. Often caused by cold fingers or shallow breathing.",
+      "plainExplanation": "Healthy blood oxygen levels within the standard 95-100% range.",
       "normalRangeText": "95 - 100%"
     },
     "bmi": {
-      "raw": "21.06",
-      "value": 21.06,
+      "raw": "22.4",
+      "value": 22.4,
       "unit": "kg/m²",
       "status": "optimal",
       "label": "Body Mass Index",
@@ -104,8 +104,8 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "normalRangeText": "18.5 - 24.9"
     },
     "weight": {
-      "raw": "169 lb 9.6 oz",
-      "value": "169.6",
+      "raw": "160 lbs",
+      "value": "160",
       "unit": "lbs",
       "status": "normal",
       "label": "Weight",
@@ -113,8 +113,8 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "normalRangeText": "Healthy weight for height"
     },
     "height": {
-      "raw": "6' 3.25\"",
-      "value": "6' 3.25\"",
+      "raw": "5' 10\"",
+      "value": "5' 10\"",
       "unit": "ft/in",
       "status": "normal",
       "label": "Height",
@@ -122,8 +122,8 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "normalRangeText": "--"
     },
     "temperature": {
-      "raw": "97.9 °F",
-      "value": 97.9,
+      "raw": "98.6 °F",
+      "value": 98.6,
       "unit": "°F",
       "status": "normal",
       "label": "Temperature (Oral)",
@@ -143,11 +143,11 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
   "clinicalIssues": [
     {
       "id": "iss-1",
-      "codeOrTitle": "Pre-diabetes",
+      "codeOrTitle": "Preventive Health Screening",
       "isRoutineScreening": true,
-      "plainEnglishSummary": "A standard check for blood sugar and glucose tolerance.",
-      "whyItWasDiscussed": "Part of an annual wellness exam and dietary discussion to establish your baseline health.",
-      "reassuranceNote": "This is a routine preventive screening code to authorize lab testing, not an active diabetes diagnosis."
+      "plainEnglishSummary": "A standard wellness evaluation for metabolic and cardiovascular health.",
+      "whyItWasDiscussed": "Part of an annual wellness exam to establish your baseline health.",
+      "reassuranceNote": "This is a routine preventive screening code to authorize lab testing, not an active disease diagnosis."
     }
   ],
   "prescriptions": [],
@@ -156,7 +156,7 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "id": "lab-1",
       "testName": "Comprehensive Metabolic Panel (CMP)",
       "category": "Metabolic",
-      "dateDue": "Complete around 10/27/2026",
+      "dateDue": "Complete within 14 days",
       "fastingRequired": true,
       "fastingHours": 10,
       "plainPurpose": "Assesses liver function, kidney function, fluid/electrolyte balance, and blood glucose.",
@@ -208,11 +208,11 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
     {
       "id": "fu-1",
       "title": "Annual Physical Exam",
-      "dateTime": "Thursday, October 28, 2027 at 2:00 PM",
-      "provider": "Priscila Marquez-Bourque, FNP-C",
-      "facility": "Amelia Medical Associates",
-      "address": "885 Kempsville Road, Suite 320, NORFOLK VA 23502",
-      "phone": "757-955-2828",
+      "dateTime": "Wednesday, November 10, 2027 at 10:00 AM",
+      "provider": "Dr. Sarah Jenkins, MD",
+      "facility": "Evergreen Community Health",
+      "address": "100 Health Sciences Blvd, Suite 300, Seattle WA 98101",
+      "phone": "555-019-2834",
       "instructions": "Arrive 15 minutes early. Bring photo ID and insurance card."
     }
   ]

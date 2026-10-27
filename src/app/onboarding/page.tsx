@@ -145,7 +145,7 @@ export default function OnboardingPage() {
                   id="patientName"
                   type="text"
                   required
-                  placeholder="e.g., Mohamed"
+                  placeholder="e.g., Alex Morgan"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium text-base shadow-xs"
