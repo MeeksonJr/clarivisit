@@ -3,19 +3,48 @@ import { ParsedVisitRecord } from "@/types/visit";
 
 const CANDIDATE_MODELS = [
   "gemini-flash-latest",
-  "gemini-2.5-flash",
   "gemini-3.8-flash",
+  "gemini-flash-lite-latest",
   "gemini-pro-latest"
 ];
 
+function getGenAIClient(): GoogleGenAI {
+  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+  if (!apiKey) {
+    throw new Error(
+      "GEMINI_API_KEY is not defined. Please verify the environment variable is configured."
+    );
+  }
+  return new GoogleGenAI({ apiKey });
+}
+
+function extractJsonBlock(text: string): string {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    return trimmed;
+  }
+  const markdownMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (markdownMatch && markdownMatch[1]) {
+    return markdownMatch[1].trim();
+  }
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.substring(firstBrace, lastBrace + 1);
+  }
+  return trimmed;
+}
+
 async function generateWithFallback(options: {
-  contents: unknown[];
-  config?: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contents: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  config?: any;
 }) {
+  const ai = getGenAIClient();
   let lastError: Error | null = null;
   for (const model of CANDIDATE_MODELS) {
     try {
-      // @ts-expect-error GoogleGenAI SDK dynamic config
       const res = await ai.models.generateContent({
         model,
         contents: options.contents,
@@ -25,8 +54,8 @@ async function generateWithFallback(options: {
     } catch (err: unknown) {
       lastError = err as Error;
       console.warn(`Model ${model} failed, trying next candidate:`, (err as Error)?.message);
-      // Wait 400ms before trying the next candidate
-      await new Promise((r) => setTimeout(r, 400));
+      // Wait 300ms before trying the next candidate
+      await new Promise((r) => setTimeout(r, 300));
     }
   }
   throw lastError || new Error("All Gemini model candidates exhausted");
@@ -239,7 +268,7 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
     });
 
     const responseText = response.text || "{}";
-    const cleanedText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const cleanedText = extractJsonBlock(responseText);
     const parsed: ParsedVisitRecord = JSON.parse(cleanedText);
 
     if (!parsed.id) {
