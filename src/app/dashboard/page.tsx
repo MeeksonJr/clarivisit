@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getStoredVisits, saveVisit } from "@/lib/storage";
 import { ParsedVisitRecord } from "@/types/visit";
 import { useAuth } from "@/context/AuthContext";
+import { compressImageFile } from "@/lib/imageCompressor";
+import { SAMPLE_VISIT_RECORD } from "@/lib/sampleVisit";
 import {
   UploadCloud,
   Camera,
@@ -51,13 +53,16 @@ export default function DashboardOverviewPage() {
 
     setIsProcessing(true);
     setErrorMessage("");
-    setUploadStepMessage("Uploading document pages...");
+    setUploadStepMessage("Optimizing photo resolution for clinical OCR...");
 
     try {
+      const rawFiles = Array.from(files);
+      const compressedFiles = await Promise.all(
+        rawFiles.map((file) => compressImageFile(file))
+      );
+
       const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]);
-      }
+      compressedFiles.forEach((file) => formData.append("files", file));
 
       setUploadStepMessage("Scanning with Gemini Multimodal Vision...");
       const res = await fetch("/api/analyze", {
@@ -91,6 +96,16 @@ export default function DashboardOverviewPage() {
       setErrorMessage(error.message || "Failed to analyze After-Visit Summary. Please try again.");
       setIsProcessing(false);
     }
+  };
+
+  const handleLoadSample = () => {
+    saveVisit(SAMPLE_VISIT_RECORD);
+    confetti({
+      particleCount: 70,
+      spread: 60,
+      origin: { y: 0.6 },
+    });
+    router.push(`/dashboard/visits/${SAMPLE_VISIT_RECORD.id}`);
   };
 
   if (loadingInitial) {
@@ -167,6 +182,18 @@ export default function DashboardOverviewPage() {
                   </span>
                 </>
               )}
+            </button>
+          </div>
+
+          {/* Instant Demo Option */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleLoadSample}
+              disabled={isProcessing}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors shadow-xs"
+            >
+              <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <span>Load Sample Visit (Explore All Pages)</span>
             </button>
           </div>
 

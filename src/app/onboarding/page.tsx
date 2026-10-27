@@ -4,7 +4,19 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { saveVisit } from "@/lib/storage";
-import { HeartPulse, UploadCloud, ArrowRight, CheckCircle2, FileText, Camera, ShieldCheck, Loader2 } from "lucide-react";
+import { compressImageFile } from "@/lib/imageCompressor";
+import { SAMPLE_VISIT_RECORD } from "@/lib/sampleVisit";
+import {
+  HeartPulse,
+  UploadCloud,
+  ArrowRight,
+  CheckCircle2,
+  FileText,
+  Camera,
+  ShieldCheck,
+  Loader2,
+  Sparkles
+} from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import confetti from "canvas-confetti";
 
@@ -33,6 +45,17 @@ export default function OnboardingPage() {
     router.push("/dashboard");
   };
 
+  const handleLoadSampleVisit = () => {
+    updateName(patientName.trim() || "Alex Morgan");
+    saveVisit(SAMPLE_VISIT_RECORD);
+    confetti({
+      particleCount: 75,
+      spread: 60,
+      origin: { y: 0.6 },
+    });
+    router.push(`/dashboard/visits/${SAMPLE_VISIT_RECORD.id}`);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFiles(Array.from(e.target.files));
@@ -48,11 +71,16 @@ export default function OnboardingPage() {
 
     setIsUploading(true);
     setErrorMsg("");
-    setUploadStatus("Reading and preparing document pages...");
+    setUploadStatus("Optimizing photo resolution for clinical OCR...");
 
     try {
+      // Compress files client-side so high-res phone photos stay well under Vercel payload limits
+      const compressedFiles = await Promise.all(
+        selectedFiles.map((file) => compressImageFile(file))
+      );
+
       const formData = new FormData();
-      selectedFiles.forEach((file) => formData.append("files", file));
+      compressedFiles.forEach((file) => formData.append("files", file));
 
       setUploadStatus("Translating medical terminology with Google Gemini...");
       const res = await fetch("/api/analyze", {
@@ -173,7 +201,7 @@ export default function OnboardingPage() {
                   Do you have your visit summary ready?
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  You can upload photos of your printed paperwork or a PDF right now, or skip to your dashboard and upload whenever you're ready.
+                  You can upload photos of your printed paperwork or a PDF right now, or load a sample visit to explore the full dashboard instantly.
                 </p>
               </div>
 
@@ -222,8 +250,9 @@ export default function OnboardingPage() {
               </div>
 
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
-                  {errorMsg}
+                <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300 space-y-1">
+                  <div className="font-bold">Notice:</div>
+                  <div>{errorMsg}</div>
                 </div>
               )}
 
@@ -249,12 +278,23 @@ export default function OnboardingPage() {
                   </button>
                 ) : null}
 
+                {/* Instant Sample Visit Preview Option */}
+                <button
+                  type="button"
+                  onClick={handleLoadSampleVisit}
+                  disabled={isUploading}
+                  className="w-full py-3 px-4 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <span>Load Sample Visit (Explore Full App Instantly)</span>
+                </button>
+
                 <button
                   onClick={handleSkipToDashboard}
                   disabled={isUploading}
-                  className="w-full py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-center"
+                  className="w-full py-2.5 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-center"
                 >
-                  I don't have it right now — take me to the dashboard
+                  Skip to empty dashboard
                 </button>
               </div>
             </div>

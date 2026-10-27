@@ -2,9 +2,9 @@ import { GoogleGenAI } from "@google/genai";
 import { ParsedVisitRecord } from "@/types/visit";
 
 const CANDIDATE_MODELS = [
+  "gemini-flash-lite-latest",
   "gemini-flash-latest",
   "gemini-3.8-flash",
-  "gemini-flash-lite-latest",
   "gemini-pro-latest"
 ];
 
