@@ -75,10 +75,11 @@ export function HealthPassportModal({
 
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition-colors shrink-0"
             >
-              <Printer className="w-4 h-4" />
-              <span>Print / Save as PDF</span>
+              <Printer className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Print / Save as PDF</span>
+              <span className="sm:hidden">Print / PDF</span>
             </button>
 
             <button
@@ -92,8 +93,8 @@ export function HealthPassportModal({
         </div>
 
         {/* Scrollable Document Preview Area */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-slate-100 dark:bg-slate-950/80">
-          <div className="max-w-[780px] mx-auto" ref={printRef}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-1.5 sm:p-6 bg-slate-100 dark:bg-slate-950/80">
+          <div className="max-w-[780px] w-full mx-auto" ref={printRef}>
             <HealthPassportDocument visit={visit} isPrintPreview={true} />
           </div>
         </div>

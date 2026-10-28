@@ -86,28 +86,28 @@ function PassportContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-4 sm:py-8 px-2 sm:px-4 print:bg-white print:p-0">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-3 sm:py-8 px-1.5 sm:px-4 print:bg-white print:p-0">
       {/* Top Floating Action Bar (Hidden on Print) */}
       <div className="no-print max-w-[800px] mx-auto mb-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={() => router.push(`/dashboard/visits/${visit.id}`)}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             title="Back to Visit Details"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <div className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">
+          <div className="min-w-0">
+            <div className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight truncate">
               Clinical Health Passport
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-[10px] text-slate-400 truncate">
               Printable 8.5" × 11" format for doctor consultations
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={handleShareLink}
             className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -118,10 +118,11 @@ function PassportContent() {
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition-colors print-include"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition-colors print-include"
           >
-            <Printer className="w-4 h-4" />
-            <span>Print / Save as PDF</span>
+            <Printer className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">Print / Save as PDF</span>
+            <span className="sm:hidden">Print / PDF</span>
           </button>
         </div>
       </div>

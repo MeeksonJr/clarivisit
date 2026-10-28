@@ -160,6 +160,20 @@ body {
     display: block !important;
   }
 
+  /* Force full width table layouts with clean word breaks */
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+
   /* Zero page breaks across cards, sections, and table rows */
   .avoid-break,
   .print-section,
