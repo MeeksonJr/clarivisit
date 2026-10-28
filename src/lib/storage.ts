@@ -1,4 +1,4 @@
-import { ParsedVisitRecord, UserProfile, StructuredPrescription } from "@/types/visit";
+import { ParsedVisitRecord, UserProfile, StructuredPrescription, LabOrder } from "@/types/visit";
 
 const VISITS_STORAGE_KEY = "clarivisit_patient_records_v1";
 const PROFILE_STORAGE_KEY = "clarivisit_user_profile_v1";
@@ -314,4 +314,93 @@ export function togglePillTaken(dateKey: string, pillSlotKey: string): boolean {
   } catch {
     return false;
   }
+}
+
+// =========================================================================
+// LAB ORDERS STATUS TRACKING & FASTING COUNTDOWN CONFIG
+// =========================================================================
+
+const LAB_STATUS_STORAGE_KEY = "clarivisit_lab_status_v1";
+const CUSTOM_LABS_STORAGE_KEY = "clarivisit_custom_labs_v1";
+const FASTING_TIMER_STORAGE_KEY = "clarivisit_fasting_timer_v1";
+
+export interface LabStatusInfo {
+  status: "ordered" | "scheduled" | "drawn" | "completed";
+  scheduledDateTime?: string;
+  notes?: string;
+}
+
+export function getLabStatuses(): Record<string, LabStatusInfo> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(LAB_STATUS_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+export function setLabStatus(labId: string, statusInfo: LabStatusInfo): void {
+  if (typeof window === "undefined") return;
+  const current = getLabStatuses();
+  current[labId] = statusInfo;
+  localStorage.setItem(LAB_STATUS_STORAGE_KEY, JSON.stringify(current));
+  window.dispatchEvent(new Event("clarivisit_lab_status_change"));
+}
+
+export function getCustomLabOrders(): LabOrder[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_LABS_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomLabOrder(lab: LabOrder): void {
+  if (typeof window === "undefined") return;
+  const current = getCustomLabOrders();
+  const filtered = current.filter((item) => item.id !== lab.id);
+  const updated = [lab, ...filtered];
+  localStorage.setItem(CUSTOM_LABS_STORAGE_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("clarivisit_custom_labs_change"));
+}
+
+export function deleteCustomLabOrder(id: string): void {
+  if (typeof window === "undefined") return;
+  const current = getCustomLabOrders();
+  const updated = current.filter((item) => item.id !== id);
+  localStorage.setItem(CUSTOM_LABS_STORAGE_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("clarivisit_custom_labs_change"));
+}
+
+export interface FastingTimerConfig {
+  targetDateTime: string; // ISO string for scheduled draw
+  fastingHours: number; // e.g. 10 or 12
+  isActive: boolean;
+  notes?: string;
+}
+
+export function getFastingTimerConfig(): FastingTimerConfig | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(FASTING_TIMER_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function saveFastingTimerConfig(config: FastingTimerConfig | null): void {
+  if (typeof window === "undefined") return;
+  if (!config) {
+    localStorage.removeItem(FASTING_TIMER_STORAGE_KEY);
+  } else {
+    localStorage.setItem(FASTING_TIMER_STORAGE_KEY, JSON.stringify(config));
+  }
+  window.dispatchEvent(new Event("clarivisit_fasting_timer_change"));
 }
