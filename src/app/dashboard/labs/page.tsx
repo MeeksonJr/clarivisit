@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   getStoredVisits,
   getCustomLabOrders,
@@ -45,11 +46,15 @@ import {
   RotateCcw,
   BarChart3,
   Layers,
-  ArrowRight
+  ArrowRight,
+  FlaskConical,
+  UploadCloud,
+  Trash2
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export default function LabsFastingPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"orders" | "biomarkers">("biomarkers");
   const [visits, setVisits] = useState<ParsedVisitRecord[]>([]);
   const [customLabs, setCustomLabs] = useState<LabOrder[]>([]);
@@ -72,18 +77,39 @@ export default function LabsFastingPage() {
   const [printBioModalOpen, setPrintBioModalOpen] = useState(false);
 
   const loadData = () => {
-    setVisits(getStoredVisits());
+    const visitsData = getStoredVisits();
+    setVisits(visitsData);
     setCustomLabs(getCustomLabOrders());
     setLabStatuses(getLabStatuses());
 
     let storedBio = getBiomarkerResults();
-    if (storedBio.length === 0) {
-      // Auto-initialize with standard 18 clinical biomarkers from demo visit
-      saveBulkBiomarkers(DEFAULT_SAMPLE_BIOMARKERS);
-      storedBio = DEFAULT_SAMPLE_BIOMARKERS;
+
+    // If user has NO visits, ensure no leftover sample biomarkers are seeded
+    if (visitsData.length === 0 && storedBio.length > 0) {
+      const sampleIds = new Set(DEFAULT_SAMPLE_BIOMARKERS.map((sb) => sb.id));
+      const hasSampleBio = storedBio.some((b) => sampleIds.has(b.id));
+      if (hasSampleBio) {
+        // Strip out any sample biomarkers left over from prior automatic seeding
+        const nonSampleBio = storedBio.filter((b) => !sampleIds.has(b.id));
+        if (nonSampleBio.length === 0) {
+          clearBiomarkerResults();
+          storedBio = [];
+        } else {
+          saveBulkBiomarkers(nonSampleBio);
+          storedBio = nonSampleBio;
+        }
+      }
     }
+
     setBiomarkers(storedBio);
     setMounted(true);
+  };
+
+  const handleClearAllBiomarkers = () => {
+    if (confirm("Are you sure you want to clear all biomarker entries?")) {
+      clearBiomarkerResults();
+      setBiomarkers([]);
+    }
   };
 
   useEffect(() => {
@@ -256,163 +282,226 @@ export default function LabsFastingPage() {
       {/* ============================================================== */}
       {activeTab === "biomarkers" && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Executive Scorecard Metric Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-            <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                Total Biomarkers
-              </span>
-              <div className="text-2xl font-black text-slate-900 dark:text-white">
-                {biomarkers.length}
+          {biomarkers.length === 0 ? (
+            /* Fresh User Empty State */
+            <div className="glass-panel rounded-3xl p-8 sm:p-12 border border-slate-200/80 dark:border-slate-800 text-center space-y-6">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-sky-100 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shadow-sm">
+                <FlaskConical className="w-8 h-8" />
               </div>
-              <p className="text-[11px] text-slate-500">Tracked in local vault</p>
-            </div>
 
-            <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">
-                Optimal / In Range
-              </span>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {optimalCount}
+              <div className="max-w-lg mx-auto space-y-2">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  No Biomarkers Recorded Yet
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Upload a laboratory report, take a picture of your Quest or Labcorp results, or paste text from your patient portal. ClariVisit will automatically extract your values, calculate clinical reference brackets, and track trends over time.
+                </p>
               </div>
-              <p className="text-[11px] text-slate-500">Normal clinical brackets</p>
-            </div>
 
-            <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 tracking-wider">
-                Borderline / Watch
-              </span>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
-                {borderlineCount}
-              </div>
-              <p className="text-[11px] text-slate-500">Responsive to lifestyle</p>
-            </div>
-
-            <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400 tracking-wider">
-                Attention Required
-              </span>
-              <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
-                {highOrLowCount}
-              </div>
-              <p className="text-[11px] text-slate-500">Discuss with doctor</p>
-            </div>
-          </div>
-
-          {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => {
-                  setEditingBiomarker(null);
-                  setAddBioModalOpen(true);
-                }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-xs transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Log Biomarker Result</span>
-              </button>
-
-              <button
-                onClick={() => setImportBioModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-colors shadow-xs"
-              >
-                <ClipboardPaste className="w-3.5 h-3.5 text-purple-600" />
-                <span>Paste Portal Text (Quest/Labcorp)</span>
-              </button>
-
-              <button
-                onClick={handleResetSampleBiomarkers}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors shadow-xs"
-                title="Reload the 18 sample biomarkers matching your physical exam"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Restore Sample Panel</span>
-              </button>
-            </div>
-
-            <button
-              onClick={() => setPrintBioModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
-            >
-              <Printer className="w-3.5 h-3.5 text-slate-500" />
-              <span>Print Lab Report</span>
-            </button>
-          </div>
-
-          {/* Search & Category Filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={bioSearchQuery}
-                onChange={(e) => setBioSearchQuery(e.target.value)}
-                placeholder="Search biomarkers (e.g. glucose, LDL, A1C, eGFR)..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-hidden focus:border-sky-500 shadow-xs"
-              />
-            </div>
-
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-850 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs">
-              {[
-                { id: "all", label: "All Tests" },
-                { id: "metabolic", label: "Metabolic" },
-                { id: "lipid", label: "Lipid & Cardio" },
-                { id: "renal", label: "Renal / Kidney" },
-                { id: "hepatic", label: "Hepatic / Liver" },
-                { id: "hematology", label: "Hematology" },
-                { id: "flagged", label: "Flagged / Watch" },
-              ].map((tab) => (
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <button
-                  key={tab.id}
-                  onClick={() => setBioPanelFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
-                    bioPanelFilter === tab.id
-                      ? "bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                  onClick={() => router.push("/dashboard/upload")}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
-                  {tab.label}
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Upload Lab Report / Visit Summary</span>
                 </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Biomarkers Grid */}
-          {filteredBiomarkers.length === 0 ? (
-            <div className="min-h-[30vh] flex flex-col items-center justify-center text-center p-8 space-y-3 glass-panel rounded-3xl border border-slate-200 dark:border-slate-800">
-              <Activity className="w-10 h-10 text-slate-400" />
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                No Biomarkers Matched Your Filter
-              </h3>
-              <p className="text-xs text-slate-500 max-w-sm">
-                Try resetting your search query or click below to log a new diagnostic biomarker.
-              </p>
-              <button
-                onClick={() => {
-                  setBioSearchQuery("");
-                  setBioPanelFilter("all");
-                }}
-                className="text-xs font-bold text-sky-700 dark:text-sky-400 hover:underline"
-              >
-                Reset Filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {filteredBiomarkers.map((b) => (
-                <BiomarkerGaugeCard
-                  key={b.id}
-                  biomarker={b}
-                  onEdit={(biomarker) => {
-                    setEditingBiomarker(biomarker);
+                <button
+                  onClick={() => setImportBioModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors shadow-xs cursor-pointer"
+                >
+                  <ClipboardPaste className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <span>Paste Portal Text (Quest / Labcorp)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setEditingBiomarker(null);
                     setAddBioModalOpen(true);
                   }}
-                  onDelete={handleDeleteBiomarker}
-                />
-              ))}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-slate-500" />
+                  <span>Add Manually</span>
+                </button>
+              </div>
+
+              {/* Optional Demo Preview */}
+              <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60 max-w-md mx-auto">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Want to preview how the biomarker spectrum visualizer works?{" "}
+                  <button
+                    onClick={handleResetSampleBiomarkers}
+                    className="font-bold text-sky-600 dark:text-sky-400 hover:underline cursor-pointer"
+                  >
+                    Load sample clinical panel (18 tests)
+                  </button>
+                </p>
+              </div>
             </div>
+          ) : (
+            <>
+              {/* Executive Scorecard Metric Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                    Total Biomarkers
+                  </span>
+                  <div className="text-2xl font-black text-slate-900 dark:text-white">
+                    {biomarkers.length}
+                  </div>
+                  <p className="text-[11px] text-slate-500">Tracked in local vault</p>
+                </div>
+
+                <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">
+                    Optimal / In Range
+                  </span>
+                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                    {optimalCount}
+                  </div>
+                  <p className="text-[11px] text-slate-500">Normal clinical brackets</p>
+                </div>
+
+                <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 tracking-wider">
+                    Borderline / Watch
+                  </span>
+                  <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+                    {borderlineCount}
+                  </div>
+                  <p className="text-[11px] text-slate-500">Responsive to lifestyle</p>
+                </div>
+
+                <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400 tracking-wider">
+                    Attention Required
+                  </span>
+                  <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
+                    {highOrLowCount}
+                  </div>
+                  <p className="text-[11px] text-slate-500">Discuss with doctor</p>
+                </div>
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingBiomarker(null);
+                      setAddBioModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Log Biomarker Result</span>
+                  </button>
+
+                  <button
+                    onClick={() => setImportBioModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-colors shadow-xs cursor-pointer"
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Paste Portal Text (Quest/Labcorp)</span>
+                  </button>
+
+                  <button
+                    onClick={handleClearAllBiomarkers}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors shadow-xs cursor-pointer"
+                    title="Clear all recorded biomarkers"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear All</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setPrintBioModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Print Lab Report</span>
+                </button>
+              </div>
+
+              {/* Search & Category Filter */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={bioSearchQuery}
+                    onChange={(e) => setBioSearchQuery(e.target.value)}
+                    placeholder="Search biomarkers (e.g. glucose, LDL, A1C, eGFR)..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-hidden focus:border-sky-500 shadow-xs"
+                  />
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-855 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs">
+                  {[
+                    { id: "all", label: "All Tests" },
+                    { id: "metabolic", label: "Metabolic" },
+                    { id: "lipid", label: "Lipid & Cardio" },
+                    { id: "renal", label: "Renal / Kidney" },
+                    { id: "hepatic", label: "Hepatic / Liver" },
+                    { id: "hematology", label: "Hematology" },
+                    { id: "flagged", label: "Flagged / Watch" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setBioPanelFilter(tab.id)}
+                      className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                        bioPanelFilter === tab.id
+                          ? "bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 shadow-xs"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Biomarkers Grid */}
+              {filteredBiomarkers.length === 0 ? (
+                <div className="min-h-[30vh] flex flex-col items-center justify-center text-center p-8 space-y-3 glass-panel rounded-3xl border border-slate-200 dark:border-slate-800">
+                  <Activity className="w-10 h-10 text-slate-400" />
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                    No Biomarkers Matched Your Filter
+                  </h3>
+                  <p className="text-xs text-slate-500 max-w-sm">
+                    Try resetting your search query or click below to log a new diagnostic biomarker.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setBioSearchQuery("");
+                      setBioPanelFilter("all");
+                    }}
+                    className="text-xs font-bold text-sky-700 dark:text-sky-400 hover:underline cursor-pointer"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {filteredBiomarkers.map((b) => (
+                    <BiomarkerGaugeCard
+                      key={b.id}
+                      biomarker={b}
+                      onEdit={(biomarker) => {
+                        setEditingBiomarker(biomarker);
+                        setAddBioModalOpen(true);
+                      }}
+                      onDelete={handleDeleteBiomarker}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -422,124 +511,186 @@ export default function LabsFastingPage() {
       {/* ============================================================== */}
       {activeTab === "orders" && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Action Buttons for Orders */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                {allLabs.length} Orders Active
-              </span>
-              <span className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
-                ({fastingCount} require overnight fasting)
-              </span>
-            </div>
+          {allLabs.length === 0 ? (
+            /* Fresh User Empty State for Orders */
+            <div className="glass-panel rounded-3xl p-8 sm:p-12 border border-slate-200/80 dark:border-slate-800 text-center space-y-6">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm">
+                <Clock className="w-8 h-8" />
+              </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPrintRequisitionModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
-              >
-                <Printer className="w-3.5 h-3.5 text-slate-500" />
-                <span>Print Requisition Sheet</span>
-              </button>
+              <div className="max-w-lg mx-auto space-y-2">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  No Outpatient Lab Orders Found
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                  When your doctor orders diagnostic labs (such as a Comprehensive Metabolic Panel, Lipid Profile, or Thyroid panel) on your After-Visit Summary, ClariVisit tracks fasting protocols, preparation checklists, and blood draw appointments.
+                </p>
+              </div>
 
-              <button
-                onClick={() => setAddLabModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 shadow-xs transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Lab Order</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Live Interactive Fasting Countdown Timer Component */}
-          <FastingCountdownTimer defaultHours={10} />
-
-          {/* Clinical Fasting Quick Guidance Banner */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="font-extrabold text-sm text-slate-900 dark:text-white">
-                Overnight Fasting Protocol Advisory ({fastingCount} Tests Require Fasting)
-              </h2>
-              <p className="text-[11px] text-amber-900/90 dark:text-amber-200/90 leading-relaxed">
-                Metabolic tests such as the <strong>Comprehensive Metabolic Panel (CMP)</strong> and <strong>Lipid Panel with Ratios</strong> require strict water-only overnight fasting for 8 to 12 hours. Drink plenty of plain water before leaving for your appointment to ensure optimal vein fullness. Do not drink black coffee, tea, or chew gum, as they trigger digestive enzymes and skew glucose readings.
-              </p>
-            </div>
-          </div>
-
-          {/* Search & Filter Toolbar for Orders */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={labSearchQuery}
-                onChange={(e) => setLabSearchQuery(e.target.value)}
-                placeholder="Search panels, categories, or biomarkers..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-hidden focus:border-amber-500 shadow-xs"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-850 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs">
-              {[
-                { id: "all", label: "All Orders" },
-                { id: "fasting", label: "Fasting Only" },
-                { id: "scheduled", label: "Scheduled" },
-                { id: "drawn", label: "Sample Drawn" },
-                { id: "completed", label: "Results Received" },
-                { id: "custom", label: "Custom Added" },
-              ].map((tab) => (
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <button
-                  key={tab.id}
-                  onClick={() => setLabStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
-                    labStatusFilter === tab.id
-                      ? "bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                  onClick={() => router.push("/dashboard/upload")}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-amber-600 hover:bg-amber-500 shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
-                  {tab.label}
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Upload After-Visit Summary</span>
                 </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Lab Order Cards Grid */}
-          {filteredLabs.length === 0 ? (
-            <div className="min-h-[30vh] flex flex-col items-center justify-center text-center p-8 space-y-3 glass-panel rounded-3xl border border-slate-200 dark:border-slate-800">
-              <FileText className="w-10 h-10 text-slate-400" />
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                No Lab Orders Matched Your Filter
-              </h3>
-              <p className="text-xs text-slate-500 max-w-sm">
-                Try resetting your search query or click below to add a new outpatient test order.
-              </p>
-              <button
-                onClick={() => {
-                  setLabSearchQuery("");
-                  setLabStatusFilter("all");
-                }}
-                className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline"
-              >
-                Reset Filters
-              </button>
+                <button
+                  onClick={() => setAddLabModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-slate-500" />
+                  <span>Add Lab Order Manually</span>
+                </button>
+              </div>
+
+              {/* Optional Demo Preview */}
+              <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60 max-w-md mx-auto">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  New to ClariVisit? Upload your doctor visit summary or visit the{" "}
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    className="font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                  >
+                    Dashboard
+                  </button>{" "}
+                  to load a sample record.
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {filteredLabs.map((lab) => (
-                <LabStatusCard
-                  key={lab.id}
-                  lab={lab}
-                  statusInfo={labStatuses[lab.id]}
-                  isCustom={customLabs.some((cl) => cl.id === lab.id)}
-                  onDeleteCustom={handleDeleteCustomLab}
-                  providerName={latestVisit?.providerName}
-                />
-              ))}
-            </div>
+            <>
+              {/* Action Buttons for Orders */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {allLabs.length} Orders Active
+                  </span>
+                  {fastingCount > 0 ? (
+                    <span className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
+                      ({fastingCount} require overnight fasting)
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                      (No fasting required for these tests)
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPrintRequisitionModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Print Requisition Sheet</span>
+                  </button>
+
+                  <button
+                    onClick={() => setAddLabModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Lab Order</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Fasting Countdown & Protocol Advisory - Only when fasting is required! */}
+              {fastingCount > 0 && (
+                <>
+                  <FastingCountdownTimer defaultHours={10} />
+
+                  <div className="p-4 sm:p-5 rounded-3xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                      <AlertTriangle className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-1">
+                      <h2 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                        Overnight Fasting Protocol Advisory ({fastingCount} Tests Require Fasting)
+                      </h2>
+                      <p className="text-[11px] text-amber-900/90 dark:text-amber-200/90 leading-relaxed">
+                        Metabolic tests such as the <strong>Comprehensive Metabolic Panel (CMP)</strong> and <strong>Lipid Panel with Ratios</strong> require strict water-only overnight fasting for 8 to 12 hours. Drink plenty of plain water before leaving for your appointment to ensure optimal vein fullness. Do not drink black coffee, tea, or chew gum, as they trigger digestive enzymes and skew glucose readings.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Search & Filter Toolbar for Orders */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={labSearchQuery}
+                    onChange={(e) => setLabSearchQuery(e.target.value)}
+                    placeholder="Search panels, categories, or biomarkers..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-hidden focus:border-amber-500 shadow-xs"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-850 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs">
+                  {[
+                    { id: "all", label: "All Orders" },
+                    { id: "fasting", label: "Fasting Only" },
+                    { id: "scheduled", label: "Scheduled" },
+                    { id: "drawn", label: "Sample Drawn" },
+                    { id: "completed", label: "Results Received" },
+                    { id: "custom", label: "Custom Added" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setLabStatusFilter(tab.id)}
+                      className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                        labStatusFilter === tab.id
+                          ? "bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-xs"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lab Order Cards Grid */}
+              {filteredLabs.length === 0 ? (
+                <div className="min-h-[30vh] flex flex-col items-center justify-center text-center p-8 space-y-3 glass-panel rounded-3xl border border-slate-200 dark:border-slate-800">
+                  <FileText className="w-10 h-10 text-slate-400" />
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                    No Lab Orders Matched Your Filter
+                  </h3>
+                  <p className="text-xs text-slate-500 max-w-sm">
+                    Try resetting your search query or click below to add a new outpatient test order.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setLabSearchQuery("");
+                      setLabStatusFilter("all");
+                    }}
+                    className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {filteredLabs.map((lab) => (
+                    <LabStatusCard
+                      key={lab.id}
+                      lab={lab}
+                      statusInfo={labStatuses[lab.id]}
+                      isCustom={customLabs.some((cl) => cl.id === lab.id)}
+                      onDeleteCustom={handleDeleteCustomLab}
+                      providerName={latestVisit?.providerName}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
