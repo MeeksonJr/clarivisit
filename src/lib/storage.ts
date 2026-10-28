@@ -149,6 +149,9 @@ export function normalizeVisitRecord(v: Partial<ParsedVisitRecord>): ParsedVisit
     preventiveCare: Array.isArray(v.preventiveCare) ? v.preventiveCare : [],
     followUps: Array.isArray(v.followUps) ? v.followUps : [],
     rawTranscribedNotes: v.rawTranscribedNotes,
+    isLabReport: Boolean(v.isLabReport),
+    labReportMetadata: v.labReportMetadata,
+    biomarkerResults: Array.isArray(v.biomarkerResults) ? v.biomarkerResults : undefined,
   };
 }
 
@@ -185,6 +188,9 @@ export function saveVisit(visit: ParsedVisitRecord): void {
       existing.unshift(normalized);
     }
     localStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(existing));
+    if (normalized.biomarkerResults && normalized.biomarkerResults.length > 0) {
+      saveBulkBiomarkers(normalized.biomarkerResults);
+    }
     window.dispatchEvent(new Event("clarivisit_data_change"));
   } catch (e) {
     console.error("Failed to save visit to local storage:", e);

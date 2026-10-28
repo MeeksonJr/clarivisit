@@ -182,6 +182,17 @@ export interface FollowUpAppointment {
   instructions: string;
 }
 
+export interface LabReportMetadata {
+  panelTitle?: string;
+  collectionDateTime?: string;
+  resultDateTime?: string;
+  reviewedByCareTeam?: boolean;
+  specimenType?: string;
+  resultStatus?: string;
+  labFacility?: string;
+  orderingProvider?: string;
+}
+
 export interface ParsedVisitRecord {
   id: string;
   createdAt: string;
@@ -202,6 +213,9 @@ export interface ParsedVisitRecord {
   preventiveCare: PreventiveCareItem[];
   followUps: FollowUpAppointment[];
   rawTranscribedNotes?: string;
+  isLabReport?: boolean;
+  labReportMetadata?: LabReportMetadata;
+  biomarkerResults?: BiomarkerResult[];
 }
 
 export interface UserProfile {

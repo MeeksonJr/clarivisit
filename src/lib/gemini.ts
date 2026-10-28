@@ -83,6 +83,24 @@ CRITICAL INSTRUCTIONS:
    - Check vaccines and screenings. If any vaccine is listed as "Never done" (e.g., Varicella or Meningococcal B), flag it as an actionable gap and generate a pre-drafted message the patient can send through their patient portal.
 6. LAB TEST PREPARATION:
    - For all ordered labs (e.g. CBC, CMP, Hemoglobin A1C, Lipid Panel, Urinalysis), explain what they test for in plain English, and explicitly state fasting requirements (e.g. CMP and Lipid Panel usually require 8-12 hours fasting with water only).
+7. COMPREHENSIVE LABORATORY RESULTS & BIOMARKER EXTRACTION:
+   - If the uploaded document is or contains laboratory test results (e.g., CBC with Auto Differential, Comprehensive Metabolic Panel, Lipid Panel, etc.):
+     - Set "isLabReport": true.
+     - Populate "labReportMetadata": { "panelTitle": "e.g. CBC WITH AUTO DIFFERENTIAL", "collectionDateTime": "date/time collected", "resultDateTime": "date/time resulted", "reviewedByCareTeam": boolean (false if 'Not yet reviewed by care team'), "specimenType": "e.g. Blood (WHOLE BLOOD)", "resultStatus": "e.g. Final", "labFacility": "Lab name", "orderingProvider": "Provider name" }.
+     - Extract EVERY single test row / biomarker into the "biomarkerResults" array:
+       - name (e.g., WBC, RBC, Hemoglobin, Hematocrit, MCV, MCH, MCHC, RDW, Platelets, MPV, Nucleated RBCs, Neutrophils %, Lymphocytes %, Monocytes %, Eosinophils %, Basophils %, Immature Granulocytes %, Neutrophils Absolute, Lymphocytes Absolute, Monocytes Absolute, Eosinophils Absolute, Basophils Absolute, Immature Granulocytes Absolute).
+       - panel (e.g., "Hematology", "Metabolic", "Lipid", "Renal", "Hepatic", "Endocrine").
+       - value (numeric).
+       - unit (e.g., K/uL, M/uL, g/dL, %, FL, PG).
+       - minRange & maxRange (numeric lower and upper reference bounds).
+       - status ("optimal", "normal", "low", "elevated", "high", "critical").
+       - flagText (e.g., "Normal", "Low", "High", "Critical").
+       - plainMeaning: Clear 1-2 sentence patient-friendly explanation of what this specific cell line or biomarker does in the body.
+       - whyItMatters: Why this biomarker is clinically relevant and reassuring context.
+       - lifestyleTips: Practical, evidence-based lifestyle or nutritional habits that support this metric.
+       - doctorDiscussPoint: Reassuring question the patient can ask their care team at their next consultation.
+     - CLINICAL REASSURANCE ON OUT-OF-RANGE OR FLAGGED LAB VALUES:
+       - If a value is flagged "Low" or "High" (such as a mildly low WBC or mild neutropenia or 0.6% immature granulocytes), provide calm, non-alarmist perspective: explain that mild variations often reflect normal biological fluctuations, mild transient viral recovery, athletic conditioning, or benign constitutional baselines, and advise discussing with their provider rather than panicking.
 
 Return STRICTLY a JSON object matching this TypeScript structure (no backticks, no markdown prefix, just pure JSON):
 
@@ -261,6 +279,34 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "phone": "555-019-2834",
       "instructions": "Arrive 15 minutes early. Bring photo ID and insurance card."
     }
+  ],
+  "isLabReport": false,
+  "labReportMetadata": {
+    "panelTitle": "e.g. CBC WITH AUTO DIFFERENTIAL",
+    "collectionDateTime": "Oct 27, 2026 1:14 PM",
+    "resultDateTime": "Oct 27, 2026 7:03 PM",
+    "reviewedByCareTeam": false,
+    "specimenType": "Blood (WHOLE BLOOD)",
+    "resultStatus": "Final",
+    "labFacility": "Outpatient Laboratory",
+    "orderingProvider": "Provider Name"
+  },
+  "biomarkerResults": [
+    {
+      "id": "bio-1",
+      "name": "WBC",
+      "panel": "Hematology",
+      "value": 3.6,
+      "unit": "K/uL",
+      "minRange": 4.6,
+      "maxRange": 13.2,
+      "status": "low",
+      "flagText": "Low",
+      "plainMeaning": "White blood cells are the frontline defense cells of the immune system.",
+      "whyItMatters": "A mild low reading is common and often benign (transient viral recovery, athletic training, or constitutional baseline).",
+      "lifestyleTips": "Ensure restorative 7-9 hours of sleep and regular nutrition.",
+      "doctorDiscussPoint": "Is my WBC reading a normal personal baseline for me given I am feeling well?"
+    }
   ]
 }`;
 
@@ -296,6 +342,16 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
     }
     if (parsed.lifestyle && (!parsed.lifestyle.recipes || parsed.lifestyle.recipes.length === 0)) {
       parsed.lifestyle.recipes = DEFAULT_CLINICAL_RECIPES;
+    }
+
+    if (Array.isArray(parsed.biomarkerResults) && parsed.biomarkerResults.length > 0) {
+      parsed.isLabReport = true;
+      parsed.biomarkerResults = parsed.biomarkerResults.map((b, idx) => ({
+        ...b,
+        id: b.id || `bio_${Date.now()}_${idx}`,
+        dateRecorded: b.dateRecorded || parsed.visitDate || "Recent",
+        labSource: b.labSource || parsed.labReportMetadata?.labFacility || parsed.facilityName || "Outpatient Clinical Lab",
+      }));
     }
 
     return parsed;

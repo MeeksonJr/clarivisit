@@ -37,9 +37,11 @@ import {
   Mail,
   Printer,
   Pill,
+  FlaskConical,
 } from "lucide-react";
 import Link from "next/link";
 import { MedicationSafetyCard } from "@/components/MedicationSafetyCard";
+import { BiomarkerGaugeCard } from "@/components/BiomarkerGaugeCard";
 
 function VisitDetailsContent() {
   const params = useParams();
@@ -64,11 +66,19 @@ function VisitDetailsContent() {
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeItem | null>(null);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [passportModalOpen, setPassportModalOpen] = useState(false);
+  const [biomarkerFilter, setBiomarkerFilter] = useState<"all" | "flagged" | "optimal">("all");
 
   useEffect(() => {
     if (visitId) {
       const found = getVisitById(visitId);
       setVisit(found);
+      if (
+        found &&
+        (found.isLabReport ||
+          (found.biomarkerResults && found.biomarkerResults.length > 0 && !found.vitals?.bloodPressure?.raw))
+      ) {
+        setActiveTab("labs");
+      }
       setLoading(false);
     }
   }, [visitId]);
@@ -336,8 +346,17 @@ END:VCALENDAR`;
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>Lab Orders & Fasting ({visit.labOrders?.length || 0})</span>
+          {visit.biomarkerResults && visit.biomarkerResults.length > 0 ? (
+            <>
+              <FlaskConical className="w-4 h-4 text-sky-400" />
+              <span>Lab Results & Biomarkers ({visit.biomarkerResults.length})</span>
+            </>
+          ) : (
+            <>
+              <FileText className="w-4 h-4" />
+              <span>Lab Orders & Fasting ({visit.labOrders?.length || 0})</span>
+            </>
+          )}
         </button>
 
         <button
@@ -585,62 +604,225 @@ END:VCALENDAR`;
       )}
 
       {/* ============================================================== */}
-      {/* TAB 3: LAB ORDERS & FASTING PREP                               */}
+      {/* TAB 3: LAB RESULTS & BIOMARKER TRACKING                        */}
       {/* ============================================================== */}
       {activeTab === "labs" && (
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-            <div>
-              <strong>Fasting Notice:</strong> Tests like Comprehensive Metabolic Panel (CMP) and Lipid Panel evaluate baseline blood glucose and triglycerides. Fast for 8 to 12 hours beforehand with plain water only.
-            </div>
-          </div>
+        <div className="space-y-6">
+          {/* Diagnostic Lab Report Results (if uploaded or analyzed) */}
+          {visit.biomarkerResults && visit.biomarkerResults.length > 0 && (() => {
+            const allBiomarkers = visit.biomarkerResults;
+            const flaggedBiomarkers = allBiomarkers.filter(
+              (b) => b.status === "low" || b.status === "high" || b.status === "elevated" || b.status === "critical"
+            );
+            const optimalBiomarkers = allBiomarkers.filter(
+              (b) => b.status === "optimal" || b.status === "normal"
+            );
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {visit.labOrders?.map((lab) => (
-              <div
-                key={lab.id}
-                className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-400">
-                      {lab.category}
-                    </span>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                      {lab.testName}
-                    </h3>
+            const displayList =
+              biomarkerFilter === "flagged"
+                ? flaggedBiomarkers
+                : biomarkerFilter === "optimal"
+                ? optimalBiomarkers
+                : allBiomarkers;
+
+            return (
+              <div className="space-y-5">
+                {/* Panel Header & Care Team Review Status */}
+                <div className="glass-panel rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+                          {visit.labReportMetadata?.specimenType || "Blood Specimen"}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Collected: {visit.labReportMetadata?.collectionDateTime || visit.visitDate}
+                        </span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                        {visit.labReportMetadata?.panelTitle || "Laboratory Diagnostic Panel"}
+                      </h2>
+                    </div>
+
+                    <div className="shrink-0">
+                      {visit.labReportMetadata?.reviewedByCareTeam === false ? (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold">
+                          <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+                          <span>Not Yet Reviewed by Care Team</span>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>Care Team Verified</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {lab.fastingRequired ? (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 shrink-0">
-                      Fasting Required
-                    </span>
+
+                  {/* Reassurance Callout for Pending / Flagged Results */}
+                  {visit.labReportMetadata?.reviewedByCareTeam === false ? (
+                    <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 space-y-1.5 leading-relaxed">
+                      <div className="font-bold flex items-center gap-1.5 text-amber-900 dark:text-amber-300">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>Clinical Notice on Early Released Lab Results:</span>
+                      </div>
+                      <p>
+                        Your diagnostic findings were delivered directly from analyzer instruments into your chart before your clinician has reviewed them. Isolated readings slightly outside reference ranges (such as mild low white cell or absolute neutrophil counts) are very common and frequently reflect recent minor viral clears, athletic recovery, or individual baseline variations. Your doctor will interpret these alongside your symptoms.
+                      </p>
+                    </div>
                   ) : (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 shrink-0">
-                      No Fasting
-                    </span>
+                    <div className="p-4 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 text-xs text-sky-950 dark:text-sky-200 leading-relaxed">
+                      <p>
+                        These laboratory measurements have been integrated with your clinical chart. Expand any biomarker below for plain-language explanations of its physiological role, standard reference thresholds, and lifestyle levers.
+                      </p>
+                    </div>
                   )}
+
+                  {/* Scorecard Metrics & Filter Pills */}
+                  <div className="grid grid-cols-3 gap-3 pt-1">
+                    <button
+                      onClick={() => setBiomarkerFilter("all")}
+                      className={`p-3.5 rounded-2xl text-left border transition-all ${
+                        biomarkerFilter === "all"
+                          ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm"
+                          : "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="text-[10px] uppercase font-bold block opacity-70">Total Tested</span>
+                      <span className="text-2xl font-black">{allBiomarkers.length}</span>
+                    </button>
+
+                    <button
+                      onClick={() => setBiomarkerFilter("optimal")}
+                      className={`p-3.5 rounded-2xl text-left border transition-all ${
+                        biomarkerFilter === "optimal"
+                          ? "bg-emerald-600 text-white border-transparent shadow-sm"
+                          : "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 hover:border-emerald-300"
+                      }`}
+                    >
+                      <span className="text-[10px] uppercase font-bold block opacity-80">Within Range</span>
+                      <span className="text-2xl font-black">{optimalBiomarkers.length}</span>
+                    </button>
+
+                    <button
+                      onClick={() => setBiomarkerFilter("flagged")}
+                      className={`p-3.5 rounded-2xl text-left border transition-all ${
+                        biomarkerFilter === "flagged"
+                          ? "bg-amber-600 text-white border-transparent shadow-sm"
+                          : "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-300 hover:border-amber-300"
+                      }`}
+                    >
+                      <span className="text-[10px] uppercase font-bold block opacity-80">Flagged / Check</span>
+                      <span className="text-2xl font-black">{flaggedBiomarkers.length}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="text-xs space-y-1">
-                  <div className="text-slate-500 font-semibold">What this test evaluates:</div>
-                  <p className="text-slate-700 dark:text-slate-300">{lab.plainPurpose}</p>
+                {/* Biomarker Gauge Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {displayList.map((bio) => (
+                    <BiomarkerGaugeCard key={bio.id} biomarker={bio} />
+                  ))}
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-100 dark:border-slate-800 text-xs space-y-1">
-                  <div className="text-slate-700 dark:text-slate-300 font-semibold">Preparation:</div>
-                  <p className="text-slate-600 dark:text-slate-400">{lab.prepInstructions}</p>
-                </div>
-
-                {lab.questionsForDoctor && lab.questionsForDoctor.length > 0 && (
-                  <div className="text-[11px] text-slate-500 pt-1">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Question for follow-up: </span>
-                    <span>"{lab.questionsForDoctor[0]}"</span>
+                {/* Discussion Questions for Follow-up if Flagged */}
+                {flaggedBiomarkers.length > 0 && (
+                  <div className="glass-panel rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        Recommended Questions for Your Care Team
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      When your provider follows up on these laboratory results, here are tailored, non-alarmist questions to ask:
+                    </p>
+                    <ul className="space-y-2 text-xs">
+                      {flaggedBiomarkers.map((b) => (
+                        <li
+                          key={`q-${b.id}`}
+                          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-start gap-2.5"
+                        >
+                          <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0" />
+                          <div className="leading-snug">
+                            <strong className="text-slate-900 dark:text-white">{b.name} ({b.value} {b.unit}): </strong>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              {b.doctorDiscussPoint || `Is this reading typical for my personal health history or should we re-check it at my next visit?`}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+            );
+          })()}
+
+          {/* Upcoming Lab Orders & Fasting Preparation (if ordered) */}
+          {visit.labOrders && visit.labOrders.length > 0 && (
+            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-amber-500" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Future Outpatient Lab Orders & Fasting Preparation
+                </h3>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                <div>
+                  <strong>Fasting Notice:</strong> Tests like Comprehensive Metabolic Panel (CMP) and Lipid Panel evaluate baseline blood glucose and triglycerides. Fast for 8 to 12 hours beforehand with plain water only.
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {visit.labOrders.map((lab) => (
+                  <div
+                    key={lab.id}
+                    className="glass-panel rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-400">
+                          {lab.category}
+                        </span>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                          {lab.testName}
+                        </h3>
+                      </div>
+                      {lab.fastingRequired ? (
+                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 shrink-0">
+                          Fasting Required
+                        </span>
+                      ) : (
+                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 shrink-0">
+                          No Fasting
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="text-xs space-y-1">
+                      <div className="text-slate-500 font-semibold">What this test evaluates:</div>
+                      <p className="text-slate-700 dark:text-slate-300">{lab.plainPurpose}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-100 dark:border-slate-800 text-xs space-y-1">
+                      <div className="text-slate-700 dark:text-slate-300 font-semibold">Preparation:</div>
+                      <p className="text-slate-600 dark:text-slate-400">{lab.prepInstructions}</p>
+                    </div>
+
+                    {lab.questionsForDoctor && lab.questionsForDoctor.length > 0 && (
+                      <div className="text-[11px] text-slate-500 pt-1">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Question for follow-up: </span>
+                        <span>"{lab.questionsForDoctor[0]}"</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

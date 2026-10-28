@@ -17,6 +17,7 @@ import {
   Dumbbell,
   Check,
   Pill,
+  FlaskConical,
 } from "lucide-react";
 
 interface HealthPassportDocumentProps {
@@ -42,6 +43,7 @@ export function HealthPassportDocument({
 
   const prescriptions = (visit.prescriptions || []) as StructuredPrescription[];
   const labs = visit.labOrders || [];
+  const biomarkers = visit.biomarkerResults || [];
   const swaps = visit.lifestyle?.mealSwaps || [];
   const grocery = visit.lifestyle?.groceryList;
   const workouts = visit.lifestyle?.weeklyWorkoutPlan || [];
@@ -512,6 +514,149 @@ export function HealthPassportDocument({
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* SECTION 3B: DIAGNOSTIC LAB RESULTS & BIOMARKER STANDING        */}
+      {/* ============================================================== */}
+      {biomarkers.length > 0 && (
+        <div className="mb-4 avoid-break">
+          {/* Section Header */}
+          <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-200 pb-1">
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+              <FlaskConical className="w-4 h-4 text-sky-600 shrink-0" />
+              <span>
+                {visit.labReportMetadata?.panelTitle || "Laboratory Biomarker Results"} ({biomarkers.length} metrics)
+              </span>
+            </h2>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {visit.labReportMetadata?.reviewedByCareTeam === false ? (
+                <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  ⏳ Pending Care Team Review
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  ✓ Care Team Verified
+                </span>
+              )}
+              {visit.labReportMetadata?.specimenType && (
+                <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                  {visit.labReportMetadata.specimenType}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Pending Review Reassurance Banner */}
+          {visit.labReportMetadata?.reviewedByCareTeam === false && (
+            <div className="p-2.5 bg-amber-50/70 border border-amber-200 rounded-xl mb-3 text-[11px] text-amber-950 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="leading-snug">
+                <span className="font-bold">Not Yet Reviewed By Care Team: </span>
+                Results release automatically when finalized by the lab analyzer. Minor variations above or below standard reference ranges are common and frequently reflect normal physiological fluctuations, hydration, or benign baseline individual traits.
+              </div>
+            </div>
+          )}
+
+          {/* --- VIEW A: DESKTOP & PRINT TABLE (Table Fixed, 4 Defined Widths) --- */}
+          <div className="hidden sm:block print:block border border-slate-200 rounded-xl overflow-hidden print:border-slate-300">
+            <table className="w-full text-xs text-left table-fixed border-collapse">
+              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[10px] uppercase">
+                <tr>
+                  <th className="py-2 px-3 w-[28%]">Biomarker / Cell Line</th>
+                  <th className="py-2 px-3 w-[20%]">Patient Result</th>
+                  <th className="py-2 px-3 w-[18%]">Standard Range</th>
+                  <th className="py-2 px-3 w-[34%]">Clinical Understanding & Reassurance</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {biomarkers.map((b, i) => {
+                  const isFlagged = b.status === "low" || b.status === "high" || b.status === "elevated" || b.status === "critical";
+                  return (
+                    <tr key={b.id || i} className={isFlagged ? "bg-amber-50/40" : i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                      <td className="py-2 px-3 align-top">
+                        <div className="font-bold text-slate-950 break-words leading-tight">
+                          {b.name}
+                        </div>
+                        <span className="inline-block mt-0.5 text-[10px] text-slate-500 font-medium">
+                          {b.panel || "Diagnostic Metric"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 align-top">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`font-mono font-bold text-xs ${isFlagged ? "text-amber-900" : "text-slate-900"}`}>
+                            {b.value} <span className="text-[10px] text-slate-500 font-sans">{b.unit}</span>
+                          </span>
+                          {isFlagged && (
+                            <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-200 text-amber-950 border border-amber-300">
+                              {b.flagText || b.status.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 px-3 align-top font-mono text-[11px] text-slate-600">
+                        {b.minRange !== undefined && b.maxRange !== undefined ? `${b.minRange} - ${b.maxRange}` : "Standard"}{" "}
+                        <span className="text-[10px] text-slate-400 font-sans">{b.unit}</span>
+                      </td>
+                      <td className="py-2 px-3 text-[11px] text-slate-600 leading-snug align-top break-words">
+                        {b.whyItMatters ? (
+                          <span>
+                            <strong className="text-slate-800">Context: </strong>
+                            {b.whyItMatters}
+                          </span>
+                        ) : (
+                          b.plainMeaning || "Standard physiological range."
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* --- VIEW B: MOBILE PHONE CARDS (Zero Scroll, 100% Contained) --- */}
+          <div className="block sm:hidden print:hidden space-y-2">
+            {biomarkers.map((b, i) => {
+              const isFlagged = b.status === "low" || b.status === "high" || b.status === "critical";
+              return (
+                <div
+                  key={`mob-bm-${b.id || i}`}
+                  className={`p-3 border rounded-xl space-y-1.5 ${
+                    isFlagged ? "bg-amber-50/50 border-amber-200" : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="font-extrabold text-slate-950 text-xs block break-words">
+                        {b.name}
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-500">
+                        {b.panel || "Diagnostic Metric"}
+                      </span>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className={`font-mono font-bold text-xs ${isFlagged ? "text-amber-900" : "text-slate-900"}`}>
+                        {b.value} <span className="text-[10px] text-slate-500">{b.unit}</span>
+                      </span>
+                      {isFlagged && (
+                        <span className="block mt-0.5 text-[9px] font-black uppercase px-1 rounded bg-amber-200 text-amber-950 text-center">
+                          {b.flagText || b.status.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-mono">
+                    Ref Range: {b.minRange !== undefined && b.maxRange !== undefined ? `${b.minRange} - ${b.maxRange} ${b.unit}` : "Standard"}
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed pt-1 border-t border-slate-200/60 break-words">
+                    {b.whyItMatters || b.plainMeaning || "Standard physiological range."}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

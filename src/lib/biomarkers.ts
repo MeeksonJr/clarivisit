@@ -255,6 +255,258 @@ export const STANDARD_BIOMARKER_TEMPLATES: Record<string, BiomarkerTemplate> = {
     doctorDiscussPoint: "Should I supplement Vitamin D during winter months?",
     comparatorType: "lower_limit",
   },
+  rbc: {
+    name: "RBC (Red Blood Cell Count)",
+    panel: "Hematology",
+    unit: "M/uL",
+    minRange: 4.35,
+    maxRange: 5.65,
+    plainMeaning: "The total number of circulating erythrocytes transporting oxygen throughout your circulatory system.",
+    whyItMatters: "A healthy count confirms normal bone marrow erythropoiesis and adequate oxygen transport capacity.",
+    lifestyleTips: "Staying hydrated and maintaining balanced intake of iron, B12, and folate supports healthy red cell production.",
+    doctorDiscussPoint: "Does my red blood cell count confirm optimal oxygenation?",
+    comparatorType: "range",
+  },
+  hematocrit: {
+    name: "Hematocrit",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 36.0,
+    maxRange: 48.0,
+    plainMeaning: "The proportion of total blood volume made up of red blood cells.",
+    whyItMatters: "Evaluated alongside hemoglobin to screen for anemia (low) or dehydration/polycythemia (high).",
+    lifestyleTips: "Proper daily water hydration maintains healthy blood viscosity and normal hematocrit balance.",
+    doctorDiscussPoint: "Is my hematocrit in healthy balance with my plasma volume?",
+    comparatorType: "range",
+  },
+  mcv: {
+    name: "MCV (Mean Corpuscular Volume)",
+    panel: "Hematology",
+    unit: "FL",
+    minRange: 78.0,
+    maxRange: 100.0,
+    plainMeaning: "Measures the physical average size of your individual red blood cells in femtoliters (FL).",
+    whyItMatters: "Normal MCV (78-100 FL) proves cells are normocytic. Low MCV suggests iron deficiency or thalassemia trait; high MCV suggests B12/folate deficiency.",
+    lifestyleTips: "A balanced diet with lean proteins and leafy greens ensures healthy red cell development.",
+    doctorDiscussPoint: "Does my MCV confirm normal red cell size and nutritional status?",
+    comparatorType: "range",
+  },
+  mch: {
+    name: "MCH (Mean Corpuscular Hemoglobin)",
+    panel: "Hematology",
+    unit: "PG",
+    minRange: 24.0,
+    maxRange: 34.0,
+    plainMeaning: "The average weight of hemoglobin inside an average red blood cell.",
+    whyItMatters: "Parallels MCV; normal values confirm adequate hemoglobin packaging per cell.",
+    lifestyleTips: "Balanced iron and vitamin intake keeps MCH in the optimal bracket.",
+    doctorDiscussPoint: "Are my red cell indices stable?",
+    comparatorType: "range",
+  },
+  mchc: {
+    name: "MCHC (Mean Corpuscular Hemoglobin Concentration)",
+    panel: "Hematology",
+    unit: "g/dL",
+    minRange: 31.0,
+    maxRange: 37.0,
+    plainMeaning: "The average concentration or density of hemoglobin in a given volume of red blood cells.",
+    whyItMatters: "Normal concentration (31-37 g/dL) confirms healthy color (normochromic) of red cells.",
+    lifestyleTips: "Whole food nutrition supports proper red blood cell synthesis.",
+    doctorDiscussPoint: "Does my MCHC confirm healthy red cell hemoglobin density?",
+    comparatorType: "range",
+  },
+  rdw: {
+    name: "RDW (Red Cell Distribution Width)",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 11.6,
+    maxRange: 14.5,
+    plainMeaning: "Measures the variation and uniformity in red blood cell sizes.",
+    whyItMatters: "Low/normal RDW means your red blood cells are uniform in size, an excellent marker of stable, healthy bone marrow output.",
+    lifestyleTips: "Nutrient-dense whole grains and vegetables support consistent red blood cell production.",
+    doctorDiscussPoint: "Does my RDW confirm red blood cell uniformity?",
+    comparatorType: "upper_limit",
+  },
+  platelets: {
+    name: "Platelets (Thrombocytes)",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 135,
+    maxRange: 420,
+    plainMeaning: "Cellular fragments essential for normal blood clotting and stopping minor bleeds.",
+    whyItMatters: "Normal platelet counts (135-420 K/uL) ensure safe blood clotting without risk of spontaneous bleeding or thrombosis.",
+    lifestyleTips: "Moderate physical exercise and limiting heavy alcohol preserve healthy bone marrow platelet production.",
+    doctorDiscussPoint: "Does my platelet count show healthy clotting capacity?",
+    comparatorType: "range",
+  },
+  mpv: {
+    name: "MPV (Mean Platelet Volume)",
+    panel: "Hematology",
+    unit: "FL",
+    minRange: 9.2,
+    maxRange: 11.8,
+    plainMeaning: "The average size of circulating platelets. Younger platelets newly released from bone marrow are larger.",
+    whyItMatters: "Normal MPV (9.2-11.8 FL) indicates a healthy, steady rate of platelet turnover in bone marrow.",
+    lifestyleTips: "General cardiovascular wellness and sleep support normal bone marrow kinetics.",
+    doctorDiscussPoint: "Is my platelet volume normal?",
+    comparatorType: "range",
+  },
+  neutrophils_pct: {
+    name: "Neutrophils %",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 40.0,
+    maxRange: 73.0,
+    plainMeaning: "The percentage of your white blood cells that are neutrophils, the primary defenders against bacterial infections.",
+    whyItMatters: "A mild variation in percentage (like 38.9%) is common and harmless, especially when the absolute neutrophil count is evaluated alongside it.",
+    lifestyleTips: "Adequate rest and stress management support balanced white cell distribution.",
+    doctorDiscussPoint: "Is my neutrophil percentage typical for my baseline health?",
+    comparatorType: "range",
+  },
+  neutrophils_abs: {
+    name: "Neutrophils Absolute",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 1.80,
+    maxRange: 8.00,
+    plainMeaning: "The actual physical count of circulating neutrophil cells per microliter of blood.",
+    whyItMatters: "A mildly low count (e.g. 1.4 K/uL) is frequently benign (constitutional, athletic, or post-viral) when asymptomatic.",
+    lifestyleTips: "Support overall immune resilience with balanced zinc, vitamin C, and restorative sleep.",
+    doctorDiscussPoint: "In the context of feeling healthy, is my absolute neutrophil count considered a safe constitutional baseline for me?",
+    comparatorType: "range",
+  },
+  lymphocytes_pct: {
+    name: "Lymphocytes %",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 21.0,
+    maxRange: 52.0,
+    plainMeaning: "The percentage of white blood cells consisting of T-cells, B-cells, and natural killer cells fighting viruses.",
+    whyItMatters: "Confirms normal viral surveillance and adaptive antibody memory.",
+    lifestyleTips: "Regular aerobic exercise mobilizes lymphocytes into circulation for enhanced immune surveillance.",
+    doctorDiscussPoint: "Does my lymphocyte distribution confirm healthy viral immunity?",
+    comparatorType: "range",
+  },
+  lymphocytes_abs: {
+    name: "Lymphocytes Absolute",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 0.90,
+    maxRange: 3.60,
+    plainMeaning: "The actual physical number of circulating viral and antibody defense lymphocytes.",
+    whyItMatters: "Normal absolute count (0.90-3.60 K/uL) confirms robust adaptive immune reserves.",
+    lifestyleTips: "Restful sleep and good nutrition maintain healthy lymphocyte counts.",
+    doctorDiscussPoint: "Are my absolute lymphocyte numbers in healthy standing?",
+    comparatorType: "range",
+  },
+  monocytes_pct: {
+    name: "Monocytes %",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 3.0,
+    maxRange: 10.0,
+    plainMeaning: "White blood cells that transform into macrophages to engulf cellular debris and foreign invaders.",
+    whyItMatters: "Normal range confirms quiet cellular cleanup without active inflammatory flares.",
+    lifestyleTips: "Anti-inflammatory diet (leafy greens, omega-3s) keeps monocyte activation calm.",
+    doctorDiscussPoint: "Is my monocyte level normal?",
+    comparatorType: "range",
+  },
+  monocytes_abs: {
+    name: "Monocytes Absolute",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 0.05,
+    maxRange: 1.20,
+    plainMeaning: "The absolute count of circulating monocyte scavenger cells.",
+    whyItMatters: "Normal absolute counts reflect quiet, balanced innate immunity.",
+    lifestyleTips: "Maintain consistent hydration and physical activity.",
+    doctorDiscussPoint: "Are my absolute monocytes normal?",
+    comparatorType: "range",
+  },
+  eosinophils_pct: {
+    name: "Eosinophils %",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 0.0,
+    maxRange: 5.0,
+    plainMeaning: "Specialized white blood cells that respond to allergic reactions and environmental irritants.",
+    whyItMatters: "Low/normal values (0-5%) indicate absence of acute allergic flare-ups or asthma exacerbations.",
+    lifestyleTips: "Minimize exposure to known allergens and maintain clean indoor air.",
+    doctorDiscussPoint: "Does my eosinophil count rule out significant allergic inflammation?",
+    comparatorType: "upper_limit",
+  },
+  eosinophils_abs: {
+    name: "Eosinophils Absolute",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 0.00,
+    maxRange: 0.40,
+    plainMeaning: "The exact number of circulating allergy and parasite defense cells.",
+    whyItMatters: "Normal counts confirm absence of eosinophilic inflammatory conditions.",
+    lifestyleTips: "A healthy anti-inflammatory lifestyle keeps eosinophils calm.",
+    doctorDiscussPoint: "Is my absolute eosinophil count normal?",
+    comparatorType: "upper_limit",
+  },
+  basophils_pct: {
+    name: "Basophils %",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 0.0,
+    maxRange: 2.0,
+    plainMeaning: "Rare white blood cells containing histamine granules involved in early inflammatory responses.",
+    whyItMatters: "Normal range (0-2%) confirms baseline calm without systemic histamine release.",
+    lifestyleTips: "Balanced nutrition supports normal granulocyte baselines.",
+    doctorDiscussPoint: "Are my basophils within normal limits?",
+    comparatorType: "upper_limit",
+  },
+  basophils_abs: {
+    name: "Basophils Absolute",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 0.00,
+    maxRange: 0.10,
+    plainMeaning: "The absolute count of histamine-releasing basophils.",
+    whyItMatters: "Normal absolute levels confirm absence of basophilic proliferation.",
+    lifestyleTips: "Maintain standard healthy lifestyle habits.",
+    doctorDiscussPoint: "Does my basophil count look standard?",
+    comparatorType: "upper_limit",
+  },
+  immature_granulocytes_pct: {
+    name: "Immature Granulocytes %",
+    panel: "Hematology",
+    unit: "%",
+    minRange: 0.0,
+    maxRange: 0.5,
+    plainMeaning: "Early precursor white blood cells (promyelocytes, myelocytes, metamyelocytes) maturing in bone marrow.",
+    whyItMatters: "A very slight elevation (such as 0.6% vs 0.5% cutoff) is a minor 0.1% fluctuation that is very common and typically benign after physical exercise or minor stress.",
+    lifestyleTips: "Adequate recovery after workouts and proper hydration support steady bone marrow output.",
+    doctorDiscussPoint: "Given that my absolute immature granulocytes count is normal, does the slight 0.6% reading have any clinical significance?",
+    comparatorType: "upper_limit",
+  },
+  immature_granulocytes_abs: {
+    name: "Immature Granulocytes Absolute",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 0.00,
+    maxRange: 0.04,
+    plainMeaning: "The actual count of circulating immature granulocytes.",
+    whyItMatters: "A normal absolute count (0.00-0.04 K/uL) confirms that bone marrow release is orderly and controlled.",
+    lifestyleTips: "Normal sleep and recovery keep marrow release in physiological balance.",
+    doctorDiscussPoint: "Confirms normal absolute count of maturing granulocytes.",
+    comparatorType: "upper_limit",
+  },
+  nrbc: {
+    name: "Nucleated RBCs (nRBC)",
+    panel: "Hematology",
+    unit: "K/uL",
+    minRange: 0.00,
+    maxRange: 0.01,
+    plainMeaning: "Immature red blood cells that still contain a cell nucleus before final maturation into mature erythrocytes.",
+    whyItMatters: "Normal value is 0 (or <0.01 K/uL) in adult blood, proving red cells are fully matured before entering circulation.",
+    lifestyleTips: "Standard healthy diet supporting marrow maturation.",
+    doctorDiscussPoint: "Confirms normal absence of premature red cells in circulation.",
+    comparatorType: "upper_limit",
+  },
 };
 
 /**
@@ -647,29 +899,53 @@ export function parseLabReportText(text: string): BiomarkerResult[] {
   const nowStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   for (const line of lines) {
-    // Try to match patterns like:
-    // "GLUCOSE: 94 mg/dL (Reference: 70-99)"
-    // "HEMOGLOBIN A1C 5.4 % Reference 4.0-5.6"
-    // "Cholesterol, Total 188 mg/dL < 200"
-    // "eGFR >90 mL/min"
+    const lineLower = line.toLowerCase();
     
-    // Pattern: [Test Name] [: or \t] [Value] [optional Unit] [Reference: min-max or <max or >min]
-    const lineClean = line.replace(/\[.*?\]/g, " ").replace(/\(.*?\)/g, " ");
-    
-    // Search in our template keys
-    for (const [key, template] of Object.entries(STANDARD_BIOMARKER_TEMPLATES)) {
-      // Check if line contains test name
-      const nameParts = template.name.toLowerCase().split(/[\s(/)]+/).filter((p) => p.length > 2);
-      const matchesName = nameParts.some((p) => line.toLowerCase().includes(p));
+    // Sort templates so more specific names (e.g. "Neutrophils Absolute", "Neutrophils %") are checked before general "Neutrophils"
+    const templateEntries = Object.entries(STANDARD_BIOMARKER_TEMPLATES).sort(
+      ([, a], [, b]) => b.name.length - a.name.length
+    );
 
-      if (matchesName) {
-        // Find numbers in line
+    for (const [key, template] of templateEntries) {
+      const templateNameLower = template.name.toLowerCase();
+      
+      // Check for direct match or key terms
+      const isPercentage = lineLower.includes("%");
+      const isAbsolute = lineLower.includes("absolute") || lineLower.includes("abs");
+
+      let matches = false;
+      if (templateNameLower.includes("%")) {
+        const baseName = templateNameLower.replace("%", "").trim();
+        matches = lineLower.includes(baseName) && isPercentage;
+      } else if (templateNameLower.includes("absolute")) {
+        const baseName = templateNameLower.replace("absolute", "").trim();
+        matches = lineLower.includes(baseName) && isAbsolute;
+      } else {
+        // Clean matching
+        const cleanName = templateNameLower.replace(/[\(\)]/g, "").trim();
+        matches = lineLower.includes(cleanName) || lineLower.startsWith(key.toLowerCase());
+      }
+
+      if (matches) {
+        // Extract numbers from line
         const numMatches = line.match(/\b\d+(\.\d+)?\b/g);
         if (numMatches && numMatches.length > 0) {
           const val = parseFloat(numMatches[0]);
           if (!isNaN(val)) {
             // Avoid adding duplicates
             if (!results.some((r) => r.name.toLowerCase() === template.name.toLowerCase())) {
+              // Check if line explicitly flags Low or High
+              let manualStatus: BiomarkerStatus | undefined;
+              let manualFlag: string | undefined;
+
+              if (lineLower.includes("low")) {
+                manualStatus = "low";
+                manualFlag = "Low (Flagged)";
+              } else if (lineLower.includes("high")) {
+                manualStatus = "elevated";
+                manualFlag = "High (Flagged)";
+              }
+
               const statusInfo = computeBiomarkerStatus(
                 val,
                 template.minRange,
@@ -685,8 +961,8 @@ export function parseLabReportText(text: string): BiomarkerResult[] {
                 unit: template.unit,
                 minRange: template.minRange,
                 maxRange: template.maxRange,
-                status: statusInfo.status,
-                flagText: statusInfo.flagText,
+                status: manualStatus || statusInfo.status,
+                flagText: manualFlag || statusInfo.flagText,
                 plainMeaning: template.plainMeaning,
                 whyItMatters: template.whyItMatters,
                 lifestyleTips: template.lifestyleTips,
@@ -694,6 +970,7 @@ export function parseLabReportText(text: string): BiomarkerResult[] {
                 dateRecorded: nowStr,
                 labSource: "Imported from Patient Portal Text",
               });
+              break; // matched this line
             }
           }
         }
