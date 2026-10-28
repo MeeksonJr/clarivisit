@@ -9,6 +9,7 @@ import { CloudAuthModal } from "@/components/CloudAuthModal";
 import {
   HeartPulse,
   LayoutDashboard,
+  UploadCloud,
   FileClock,
   Activity,
   Apple,
@@ -59,9 +60,14 @@ function DashboardNavContent({
 
   const navItems: NavItem[] = [
     {
-      name: "Dashboard & Upload",
+      name: "Dashboard",
       href: "/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Upload & Scan",
+      href: "/dashboard/upload",
+      icon: UploadCloud,
     },
     {
       name: "Visit History",

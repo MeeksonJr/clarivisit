@@ -148,7 +148,7 @@ export default function LifestyleNutritionPage() {
           Upload an After-Visit Summary to turn doctor instructions into grocery shopping lists, healthy carb swaps, and weekly exercise schedules.
         </p>
         <Link
-          href="/dashboard"
+          href="/dashboard/upload"
           className="mt-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500"
         >
           Upload Visit Summary

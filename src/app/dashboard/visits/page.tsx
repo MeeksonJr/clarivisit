@@ -78,7 +78,7 @@ export default function AllVisitsHistoryPage() {
         </div>
 
         <Link
-          href="/dashboard"
+          href="/dashboard/upload"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
@@ -114,7 +114,7 @@ export default function AllVisitsHistoryPage() {
           </p>
           {visits.length === 0 && (
             <Link
-              href="/dashboard"
+              href="/dashboard/upload"
               className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 transition-colors"
             >
               <Plus className="w-4 h-4" />

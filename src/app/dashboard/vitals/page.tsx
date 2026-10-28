@@ -80,7 +80,7 @@ export default function VitalsTrackerPage() {
           </p>
         </div>
         <Link
-          href="/dashboard"
+          href="/dashboard/upload"
           className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 transition-colors shadow-xs"
         >
           <span>Upload Visit Summary</span>
