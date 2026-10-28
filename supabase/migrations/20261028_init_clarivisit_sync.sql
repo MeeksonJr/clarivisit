@@ -19,7 +19,9 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their own profile"
   ON public.profiles
   FOR ALL
-  USING (auth.uid() = id);
+  TO authenticated
+  USING ((select auth.uid()) = id)
+  WITH CHECK ((select auth.uid()) = id);
 
 -- 2. Patient After-Visit Summaries
 CREATE TABLE IF NOT EXISTS public.visits (
@@ -39,7 +41,9 @@ ALTER TABLE public.visits ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their own visit records"
   ON public.visits
   FOR ALL
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE INDEX IF NOT EXISTS idx_visits_user_id ON public.visits(user_id);
 
@@ -65,7 +69,9 @@ ALTER TABLE public.biomarkers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their own biomarkers"
   ON public.biomarkers
   FOR ALL
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE INDEX IF NOT EXISTS idx_biomarkers_user_id ON public.biomarkers(user_id);
 
@@ -83,7 +89,9 @@ ALTER TABLE public.custom_medications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their own custom medications"
   ON public.custom_medications
   FOR ALL
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- 5. Custom Outpatient Lab Orders
 CREATE TABLE IF NOT EXISTS public.custom_labs (
@@ -99,18 +107,32 @@ ALTER TABLE public.custom_labs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their own custom lab orders"
   ON public.custom_labs
   FOR ALL
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
+
+-- Explicit Grants for PostgREST Data API
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON TABLE public.profiles TO authenticated;
+GRANT ALL ON TABLE public.visits TO authenticated;
+GRANT ALL ON TABLE public.biomarkers TO authenticated;
+GRANT ALL ON TABLE public.custom_medications TO authenticated;
+GRANT ALL ON TABLE public.custom_labs TO authenticated;
 
 -- Auto-profile trigger when new auth user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, name, created_at)
   VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)), now())
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

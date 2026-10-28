@@ -39,10 +39,10 @@ interface CloudAuthModalProps {
 const SQL_MIGRATION_SNIPPET = `-- Run this in your Supabase SQL Editor:
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  name TEXT, email TEXT, created_at TIMESTAMPTZ DEFAULT now()
+  name TEXT, email TEXT, created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Profiles self access" ON public.profiles FOR ALL USING (auth.uid() = id);
+CREATE POLICY "Profiles self access" ON public.profiles FOR ALL TO authenticated USING ((select auth.uid()) = id) WITH CHECK ((select auth.uid()) = id);
 
 CREATE TABLE IF NOT EXISTS public.visits (
   id TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -50,30 +50,35 @@ CREATE TABLE IF NOT EXISTS public.visits (
   record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE public.visits ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Visits self access" ON public.visits FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Visits self access" ON public.visits FOR ALL TO authenticated USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);
+CREATE INDEX IF NOT EXISTS idx_visits_user_id ON public.visits(user_id);
 
 CREATE TABLE IF NOT EXISTS public.biomarkers (
   id TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL, panel TEXT NOT NULL, value NUMERIC NOT NULL, unit TEXT NOT NULL,
   min_range NUMERIC NOT NULL, max_range NUMERIC NOT NULL, status TEXT NOT NULL,
-  date_recorded TEXT, record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+  date_recorded TEXT, record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE public.biomarkers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Biomarkers self access" ON public.biomarkers FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Biomarkers self access" ON public.biomarkers FOR ALL TO authenticated USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);
+CREATE INDEX IF NOT EXISTS idx_biomarkers_user_id ON public.biomarkers(user_id);
 
 CREATE TABLE IF NOT EXISTS public.custom_medications (
   id TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+  medication_name TEXT, record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE public.custom_medications ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Meds self access" ON public.custom_medications FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Meds self access" ON public.custom_medications FOR ALL TO authenticated USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE TABLE IF NOT EXISTS public.custom_labs (
   id TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+  test_name TEXT, record_data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE public.custom_labs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Labs self access" ON public.custom_labs FOR ALL USING (auth.uid() = user_id);`;
+CREATE POLICY "Labs self access" ON public.custom_labs FOR ALL TO authenticated USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;`;
 
 export function CloudAuthModal({ isOpen, onClose }: CloudAuthModalProps) {
   const {
