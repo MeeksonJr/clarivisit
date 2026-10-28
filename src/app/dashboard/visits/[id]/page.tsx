@@ -6,6 +6,7 @@ import { getVisitById, deleteVisit } from "@/lib/storage";
 import { ParsedVisitRecord, RecipeItem } from "@/types/visit";
 import { RecipeCard } from "@/components/RecipeCard";
 import { RecipeModal } from "@/components/RecipeModal";
+import { EmailDigestModal } from "@/components/EmailDigestModal";
 import { DEFAULT_CLINICAL_RECIPES } from "@/lib/recipes";
 import {
   HeartPulse,
@@ -32,6 +33,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChefHat,
+  Mail,
 } from "lucide-react";
 
 function VisitDetailsContent() {
@@ -55,6 +57,7 @@ function VisitDetailsContent() {
   const [chatLoading, setChatLoading] = useState(false);
   const [copiedDraft, setCopiedDraft] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeItem | null>(null);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   useEffect(() => {
     if (visitId) {
@@ -204,6 +207,15 @@ END:VCALENDAR`;
           >
             <MessageSquare className="w-4 h-4 text-sky-600" />
             <span>Chat With Visit</span>
+          </button>
+
+          <button
+            onClick={() => setEmailModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900 transition-colors"
+            title="Email health digest to self or caregiver"
+          >
+            <Mail className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <span className="hidden sm:inline">Email Care Plan</span>
           </button>
 
           {visit.followUps && visit.followUps.length > 0 && (
@@ -820,6 +832,13 @@ END:VCALENDAR`;
       <RecipeModal
         recipe={selectedRecipe}
         onClose={() => setSelectedRecipe(null)}
+      />
+
+      {/* Email Digest Modal */}
+      <EmailDigestModal
+        isOpen={emailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
+        visit={visit}
       />
     </div>
   );

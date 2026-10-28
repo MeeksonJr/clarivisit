@@ -6,6 +6,7 @@ import { ParsedVisitRecord, RecipeItem } from "@/types/visit";
 import { DEFAULT_CLINICAL_RECIPES } from "@/lib/recipes";
 import { RecipeCard } from "@/components/RecipeCard";
 import { RecipeModal } from "@/components/RecipeModal";
+import { EmailDigestModal } from "@/components/EmailDigestModal";
 import {
   Apple,
   Dumbbell,
@@ -22,6 +23,7 @@ import {
   ShieldCheck,
   Check,
   Calendar,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -38,6 +40,7 @@ export default function LifestyleNutritionPage() {
   const [addedGroceryItems, setAddedGroceryItems] = useState<string[]>([]);
   const [checkedGroceries, setCheckedGroceries] = useState<Record<string, boolean>>({});
   const [completedWorkouts, setCompletedWorkouts] = useState<Record<string, boolean>>({});
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   useEffect(() => {
     const stored = getStoredVisits();
@@ -198,7 +201,17 @@ export default function LifestyleNutritionPage() {
           </p>
         </div>
 
-        {visits.length > 1 && (
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setEmailModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900 transition-colors shadow-xs"
+            title="Email Care & Nutrition Plan"
+          >
+            <Mail className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <span>Email Care Plan</span>
+          </button>
+
+          {visits.length > 1 && (
           <select
             value={activeVisit?.id}
             onChange={(e) => {
@@ -217,6 +230,7 @@ export default function LifestyleNutritionPage() {
             ))}
           </select>
         )}
+        </div>
       </div>
 
       {/* Primary Target Metric Cards */}
@@ -628,6 +642,13 @@ export default function LifestyleNutritionPage() {
         recipe={selectedRecipe}
         onClose={() => setSelectedRecipe(null)}
         onAddToGroceryList={handleAddToGroceryList}
+      />
+
+      {/* Email Care Plan Modal */}
+      <EmailDigestModal
+        isOpen={emailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
+        visit={activeVisit}
       />
     </div>
   );
