@@ -114,7 +114,71 @@ export const SAMPLE_VISIT_RECORD: ParsedVisitRecord = {
       reassuranceNote: "Standard clinic survey with no clinical pathology.",
     },
   ],
-  prescriptions: [],
+  prescriptions: [
+    {
+      id: "rx-1",
+      medicationName: "Coenzyme Q10 (CoQ10)",
+      dosage: "100 mg",
+      frequency: "Once daily in the morning",
+      timingSlots: ["morning"],
+      foodRequirement: "with_food",
+      clinicalPurpose: "Cardiovascular cellular bioenergetics and antioxidant support for arterial endothelial tissue.",
+      instructions: "Take 1 softgel every morning with breakfast containing dietary fats for maximum bioavailability.",
+      sideEffectsToWatch: [
+        "Mild stomach upset if taken on an empty stomach",
+        "Rarely mild insomnia if taken late in the evening"
+      ],
+      pharmacyQuestions: [
+        "Is it best taken with healthy fats like avocado or eggs?",
+        "Does CoQ10 interact with standard multivitamin supplements?"
+      ],
+      refillsRemaining: 2,
+      prescribingDoctor: "Dr. Elena Vance, MD",
+      status: "active"
+    },
+    {
+      id: "rx-2",
+      medicationName: "Vitamin D3 (Cholecalciferol)",
+      dosage: "2,000 IU (50 mcg)",
+      frequency: "Once daily in the morning",
+      timingSlots: ["morning"],
+      foodRequirement: "with_food",
+      clinicalPurpose: "Maintains serum 25-hydroxyvitamin D concentrations, supports bone density, and optimizes immune signaling.",
+      instructions: "Take 1 liquid softgel daily with your morning meal.",
+      sideEffectsToWatch: [
+        "Generally very well tolerated at 2,000 IU daily",
+        "Excessive thirst or nausea if taking beyond prescribed dose"
+      ],
+      pharmacyQuestions: [
+        "Should I continue this dosage year-round or re-check levels in winter?",
+        "Can I take this alongside my daily calcium or yogurt intake?"
+      ],
+      refillsRemaining: 3,
+      prescribingDoctor: "Dr. Elena Vance, MD",
+      status: "active"
+    },
+    {
+      id: "rx-3",
+      medicationName: "Omega-3 EPA/DHA Triglyceride Concentrate",
+      dosage: "1,000 mg",
+      frequency: "Once daily with dinner",
+      timingSlots: ["evening"],
+      foodRequirement: "with_food",
+      clinicalPurpose: "Promotes favorable triglyceride:HDL ratios and maintains vascular compliance.",
+      instructions: "Take 1 enteric-coated capsule with your evening meal.",
+      sideEffectsToWatch: [
+        "Mild fishy aftertaste (taking with food or freezing capsules minimizes this)",
+        "Mild loose stool if taken in excessive amounts"
+      ],
+      pharmacyQuestions: [
+        "Does this brand have third-party purity certification for heavy metals?",
+        "Can I take this if I am also eating baked salmon for dinner?"
+      ],
+      refillsRemaining: 1,
+      prescribingDoctor: "Dr. Elena Vance, MD",
+      status: "active"
+    }
+  ],
   labOrders: [
     {
       id: "lab-1",
@@ -371,7 +435,71 @@ export const SAMPLE_PRIOR_VISIT_RECORD: ParsedVisitRecord = {
       reassuranceNote: "Reversible with daily brisk cardio and reduced sodium intake.",
     },
   ],
-  prescriptions: [],
+  prescriptions: [
+    {
+      id: "rx-1",
+      medicationName: "Coenzyme Q10 (CoQ10)",
+      dosage: "100 mg",
+      frequency: "Once daily in the morning",
+      timingSlots: ["morning"],
+      foodRequirement: "with_food",
+      clinicalPurpose: "Cardiovascular cellular bioenergetics and antioxidant support for arterial endothelial tissue.",
+      instructions: "Take 1 softgel every morning with breakfast containing dietary fats for maximum bioavailability.",
+      sideEffectsToWatch: [
+        "Mild stomach upset if taken on an empty stomach",
+        "Rarely mild insomnia if taken late in the evening"
+      ],
+      pharmacyQuestions: [
+        "Is it best taken with healthy fats like avocado or eggs?",
+        "Does CoQ10 interact with standard multivitamin supplements?"
+      ],
+      refillsRemaining: 2,
+      prescribingDoctor: "Dr. Elena Vance, MD",
+      status: "active"
+    },
+    {
+      id: "rx-2",
+      medicationName: "Vitamin D3 (Cholecalciferol)",
+      dosage: "2,000 IU (50 mcg)",
+      frequency: "Once daily in the morning",
+      timingSlots: ["morning"],
+      foodRequirement: "with_food",
+      clinicalPurpose: "Maintains serum 25-hydroxyvitamin D concentrations, supports bone density, and optimizes immune signaling.",
+      instructions: "Take 1 liquid softgel daily with your morning meal.",
+      sideEffectsToWatch: [
+        "Generally very well tolerated at 2,000 IU daily",
+        "Excessive thirst or nausea if taking beyond prescribed dose"
+      ],
+      pharmacyQuestions: [
+        "Should I continue this dosage year-round or re-check levels in winter?",
+        "Can I take this alongside my daily calcium or yogurt intake?"
+      ],
+      refillsRemaining: 3,
+      prescribingDoctor: "Dr. Elena Vance, MD",
+      status: "active"
+    },
+    {
+      id: "rx-3",
+      medicationName: "Omega-3 EPA/DHA Triglyceride Concentrate",
+      dosage: "1,000 mg",
+      frequency: "Once daily with dinner",
+      timingSlots: ["evening"],
+      foodRequirement: "with_food",
+      clinicalPurpose: "Promotes favorable triglyceride:HDL ratios and maintains vascular compliance.",
+      instructions: "Take 1 enteric-coated capsule with your evening meal.",
+      sideEffectsToWatch: [
+        "Mild fishy aftertaste (taking with food or freezing capsules minimizes this)",
+        "Mild loose stool if taken in excessive amounts"
+      ],
+      pharmacyQuestions: [
+        "Does this brand have third-party purity certification for heavy metals?",
+        "Can I take this if I am also eating baked salmon for dinner?"
+      ],
+      refillsRemaining: 1,
+      prescribingDoctor: "Dr. Elena Vance, MD",
+      status: "active"
+    }
+  ],
   labOrders: [
     {
       id: "prior-lab-1",

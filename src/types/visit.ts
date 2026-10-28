@@ -48,6 +48,23 @@ export interface LabOrder {
   questionsForDoctor: string[];
 }
 
+export interface StructuredPrescription {
+  id: string;
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  timingSlots: ("morning" | "afternoon" | "evening" | "bedtime" | "as_needed")[];
+  foodRequirement: "with_food" | "empty_stomach" | "with_plenty_of_water" | "no_restriction";
+  clinicalPurpose: string;
+  instructions: string;
+  sideEffectsToWatch: string[];
+  pharmacyQuestions?: string[];
+  refillsRemaining?: number;
+  prescribingDoctor?: string;
+  isCustomSupplement?: boolean;
+  status: "active" | "completed" | "discontinued";
+}
+
 export interface ClinicalIssue {
   id: string;
   codeOrTitle: string;
@@ -148,7 +165,7 @@ export interface ParsedVisitRecord {
   summaryExecutive: string;
   vitals: ExtractedVitals;
   clinicalIssues: ClinicalIssue[];
-  prescriptions: string[];
+  prescriptions: StructuredPrescription[];
   labOrders: LabOrder[];
   lifestyle: LifestylePrescription;
   preventiveCare: PreventiveCareItem[];

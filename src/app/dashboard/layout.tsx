@@ -13,6 +13,7 @@ import {
   Apple,
   FileText,
   Settings,
+  Pill,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -72,6 +73,11 @@ function DashboardNavContent({
       name: "Lifestyle & Nutrition",
       href: "/dashboard/lifestyle",
       icon: Apple,
+    },
+    {
+      name: "Medications & Rx",
+      href: "/dashboard/medications",
+      icon: Pill,
     },
     {
       name: "Lab Orders & Fasting",

@@ -180,7 +180,23 @@ Return STRICTLY a JSON object matching this TypeScript structure (no backticks, 
       "reassuranceNote": "This is a routine preventive screening code to authorize lab testing, not an active disease diagnosis."
     }
   ],
-  "prescriptions": [],
+  "prescriptions": [
+    {
+      "id": "rx-1",
+      "medicationName": "Medication or Supplement Name",
+      "dosage": "e.g. 10 mg or 2,000 IU",
+      "frequency": "e.g. Once daily",
+      "timingSlots": ["morning"],
+      "foodRequirement": "with_food",
+      "clinicalPurpose": "Plain-English clinical purpose for this medication.",
+      "instructions": "Specific administration instructions from the doctor or paperwork.",
+      "sideEffectsToWatch": ["Mild side effect 1", "Symptom to report 2"],
+      "pharmacyQuestions": ["Key question to confirm with the pharmacist"],
+      "refillsRemaining": 2,
+      "prescribingDoctor": "Provider Name",
+      "status": "active"
+    }
+  ],
   "labOrders": [
     {
       "id": "lab-1",

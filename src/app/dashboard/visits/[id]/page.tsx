@@ -36,7 +36,10 @@ import {
   ChefHat,
   Mail,
   Printer,
+  Pill,
 } from "lucide-react";
+import Link from "next/link";
+import { MedicationSafetyCard } from "@/components/MedicationSafetyCard";
 
 function VisitDetailsContent() {
   const params = useParams();
@@ -45,7 +48,7 @@ function VisitDetailsContent() {
 
   const [visit, setVisit] = useState<ParsedVisitRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"vitals" | "jargon" | "labs" | "lifestyle" | "preventive">("vitals");
+  const [activeTab, setActiveTab] = useState<"vitals" | "medications" | "jargon" | "labs" | "lifestyle" | "preventive">("vitals");
   
   // Chat state
   const [chatOpen, setChatOpen] = useState(false);
@@ -302,6 +305,18 @@ END:VCALENDAR`;
         </button>
 
         <button
+          onClick={() => setActiveTab("medications")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            activeTab === "medications"
+              ? "bg-sky-600 text-white shadow-xs"
+              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          }`}
+        >
+          <Pill className="w-4 h-4" />
+          <span>Medications ({visit.prescriptions?.length || 0})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("jargon")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === "jargon"
@@ -480,6 +495,48 @@ END:VCALENDAR`;
               </span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB: MEDICATIONS & PHARMACY GUIDANCE                           */}
+      {/* ============================================================== */}
+      {activeTab === "medications" && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/60">
+            <div>
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                Prescribed Regimen & Pharmacy Guidance
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Detailed dosage administration, food requirements, and side-effect alerts for this visit
+              </p>
+            </div>
+            <Link
+              href="/dashboard/medications"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 transition-colors shrink-0 shadow-xs"
+            >
+              <span>Open Daily Pill Tracker &rarr;</span>
+            </Link>
+          </div>
+
+          {visit.prescriptions && visit.prescriptions.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {visit.prescriptions.map((rx) => (
+                <MedicationSafetyCard key={rx.id} rx={rx} />
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
+              <Pill className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                No Prescriptions Recorded for this Visit
+              </p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                No active prescription medications were identified on this discharge summary.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,8 +1,44 @@
-import { ParsedVisitRecord, UserProfile } from "@/types/visit";
+import { ParsedVisitRecord, UserProfile, StructuredPrescription } from "@/types/visit";
 
 const VISITS_STORAGE_KEY = "clarivisit_patient_records_v1";
 const PROFILE_STORAGE_KEY = "clarivisit_user_profile_v1";
 const THEME_STORAGE_KEY = "clarivisit_theme_pref_v1";
+const CUSTOM_MEDICATIONS_KEY = "clarivisit_custom_medications_v1";
+const PILL_TRACKER_KEY = "clarivisit_daily_pill_log_v1";
+
+export function normalizePrescription(p: any): StructuredPrescription {
+  if (typeof p === "string") {
+    return {
+      id: `rx_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      medicationName: p,
+      dosage: "Standard dose",
+      frequency: "As directed",
+      timingSlots: ["morning"],
+      foodRequirement: "no_restriction",
+      clinicalPurpose: "Prescription recorded on after-visit summary.",
+      instructions: "Take as directed by your physician.",
+      sideEffectsToWatch: ["Consult your healthcare provider if you experience adverse effects."],
+      status: "active",
+    };
+  }
+
+  return {
+    id: p?.id || `rx_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    medicationName: p?.medicationName || "Prescription Medication",
+    dosage: p?.dosage || "As directed",
+    frequency: p?.frequency || "Once daily",
+    timingSlots: Array.isArray(p?.timingSlots) && p.timingSlots.length > 0 ? p.timingSlots : ["morning"],
+    foodRequirement: p?.foodRequirement || "no_restriction",
+    clinicalPurpose: p?.clinicalPurpose || "Prescribed by physician.",
+    instructions: p?.instructions || "Take as directed by your healthcare provider.",
+    sideEffectsToWatch: Array.isArray(p?.sideEffectsToWatch) ? p.sideEffectsToWatch : [],
+    pharmacyQuestions: Array.isArray(p?.pharmacyQuestions) ? p.pharmacyQuestions : [],
+    refillsRemaining: p?.refillsRemaining,
+    prescribingDoctor: p?.prescribingDoctor,
+    isCustomSupplement: Boolean(p?.isCustomSupplement),
+    status: p?.status || "active",
+  };
+}
 
 export function normalizeVisitRecord(v: Partial<ParsedVisitRecord>): ParsedVisitRecord {
   return {
@@ -92,7 +128,7 @@ export function normalizeVisitRecord(v: Partial<ParsedVisitRecord>): ParsedVisit
       },
     },
     clinicalIssues: Array.isArray(v.clinicalIssues) ? v.clinicalIssues : [],
-    prescriptions: Array.isArray(v.prescriptions) ? v.prescriptions : [],
+    prescriptions: Array.isArray(v.prescriptions) ? v.prescriptions.map(normalizePrescription) : [],
     labOrders: Array.isArray(v.labOrders) ? v.labOrders : [],
     lifestyle: v.lifestyle || {
       doctorDirectivesRaw: "",
@@ -202,11 +238,80 @@ export function deleteUserProfile(): void {
 export function exportHealthDataJson(): string {
   const visits = getStoredVisits();
   const profile = getUserProfile();
+  const customMeds = getCustomMedications();
   const payload = {
     exportDate: new Date().toISOString(),
     appName: "ClariVisit",
     profile,
     visits,
+    customMedications: customMeds,
   };
   return JSON.stringify(payload, null, 2);
+}
+
+// =========================================================================
+// CUSTOM MEDICATIONS & SUPPLEMENT STORAGE
+// =========================================================================
+
+export function getCustomMedications(): StructuredPrescription[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_MEDICATIONS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizePrescription);
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomMedication(rx: StructuredPrescription): void {
+  if (typeof window === "undefined") return;
+  const existing = getCustomMedications();
+  const filtered = existing.filter((item) => item.id !== rx.id);
+  const updated = [normalizePrescription(rx), ...filtered];
+  localStorage.setItem(CUSTOM_MEDICATIONS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("clarivisit_meds_change"));
+}
+
+export function deleteCustomMedication(id: string): void {
+  if (typeof window === "undefined") return;
+  const existing = getCustomMedications();
+  const updated = existing.filter((item) => item.id !== id);
+  localStorage.setItem(CUSTOM_MEDICATIONS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("clarivisit_meds_change"));
+}
+
+// =========================================================================
+// DAILY PILL TAKEN LOG TRACKER
+// =========================================================================
+
+export function getPillLogForDate(dateKey: string): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(PILL_TRACKER_KEY);
+    if (!raw) return {};
+    const allLogs = JSON.parse(raw);
+    return allLogs[dateKey] || {};
+  } catch {
+    return {};
+  }
+}
+
+export function togglePillTaken(dateKey: string, pillSlotKey: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem(PILL_TRACKER_KEY);
+    const allLogs = raw ? JSON.parse(raw) : {};
+    const dateLog = allLogs[dateKey] || {};
+    const nextState = !dateLog[pillSlotKey];
+    dateLog[pillSlotKey] = nextState;
+    allLogs[dateKey] = dateLog;
+    localStorage.setItem(PILL_TRACKER_KEY, JSON.stringify(allLogs));
+    window.dispatchEvent(new Event("clarivisit_pill_logged"));
+    return nextState;
+  } catch {
+    return false;
+  }
 }

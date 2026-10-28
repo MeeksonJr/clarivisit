@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ParsedVisitRecord } from "@/types/visit";
+import { ParsedVisitRecord, StructuredPrescription } from "@/types/visit";
 import {
   HeartPulse,
   Activity,
@@ -16,6 +16,7 @@ import {
   Apple,
   Dumbbell,
   Check,
+  Pill,
 } from "lucide-react";
 
 interface HealthPassportDocumentProps {
@@ -39,6 +40,7 @@ export function HealthPassportDocument({
   const temp = visit.vitals?.temperature;
   const resp = visit.vitals?.respirationRate;
 
+  const prescriptions = (visit.prescriptions || []) as StructuredPrescription[];
   const labs = visit.labOrders || [];
   const swaps = visit.lifestyle?.mealSwaps || [];
   const grocery = visit.lifestyle?.groceryList;
@@ -330,6 +332,93 @@ export function HealthPassportDocument({
           </div>
         </div>
       </div>
+
+      {/* ============================================================== */}
+      {/* SECTION: ACTIVE MEDICATIONS & PHARMACY GUIDANCE                */}
+      {/* Zero horizontal scrolling: 3-column fixed table for Print/Desktop */}
+      {/* + Structured Mobile Stack Cards                                */}
+      {/* ============================================================== */}
+      {prescriptions.length > 0 && (
+        <div className="mb-4 avoid-break">
+          <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1">
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+              <Pill className="w-4 h-4 text-sky-600 shrink-0" />
+              <span>Prescription & Supplement Regimen ({prescriptions.length} items)</span>
+            </h2>
+            <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+              Active Provider Plan
+            </span>
+          </div>
+
+          {/* Desktop & Print Table */}
+          <div className="hidden sm:block print:block border border-slate-200 rounded-xl overflow-hidden print:border-slate-300">
+            <table className="w-full text-xs text-left table-fixed border-collapse">
+              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[10px] uppercase">
+                <tr>
+                  <th className="py-2 px-3 w-[32%]">Medication & Strength</th>
+                  <th className="py-2 px-3 w-[38%]">Schedule & Directives</th>
+                  <th className="py-2 px-3 w-[30%]">Clinical Purpose & Food</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {prescriptions.map((rx, i) => (
+                  <tr key={`print-rx-${i}`} className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                    <td className="py-2 px-3 align-top">
+                      <div className="font-bold text-slate-950 break-words leading-tight">
+                        {rx.medicationName}
+                      </div>
+                      <span className="inline-block mt-0.5 text-[10px] font-bold text-sky-700">
+                        {rx.dosage}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[11px] text-slate-700 leading-snug break-words">
+                      <div><strong>Frequency:</strong> {rx.frequency}</div>
+                      <div className="text-[10px] text-slate-500 capitalize">
+                        Slots: {rx.timingSlots.join(", ")}
+                      </div>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[11px] text-slate-600 leading-snug break-words">
+                      <div className="line-clamp-2">{rx.clinicalPurpose}</div>
+                      <div className="mt-0.5 text-[10px] font-bold text-amber-800">
+                        {rx.foodRequirement === "with_food" && "• Take with meal"}
+                        {rx.foodRequirement === "with_plenty_of_water" && "• Full glass water"}
+                        {rx.foodRequirement === "empty_stomach" && "• Empty stomach"}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Stack Cards */}
+          <div className="block sm:hidden print:hidden space-y-2">
+            {prescriptions.map((rx, i) => (
+              <div
+                key={`mob-rx-${i}`}
+                className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-extrabold text-slate-950 text-xs block break-words">
+                      {rx.medicationName}
+                    </span>
+                    <span className="text-[10px] font-bold text-sky-700">
+                      {rx.dosage} • {rx.frequency}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 shrink-0">
+                    {rx.timingSlots[0] || "morning"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed pt-0.5 border-t border-slate-200/60 break-words">
+                  {rx.clinicalPurpose}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================== */}
       {/* SECTION 3: LAB ORDERS & FASTING PREPARATION                     */}
