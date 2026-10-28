@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
     const apiKey = (process.env.RESEND_API_KEY || "").trim();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "RESEND_API_KEY is not configured on the server." },
-        { status: 500 }
+        { error: "Email delivery service is currently not configured on this environment." },
+        { status: 503 }
       );
     }
 

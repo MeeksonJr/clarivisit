@@ -1,15 +1,12 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const CUSTOM_SUPABASE_CONFIG_KEY = "clarivisit_supabase_custom_config_v1";
-
 export interface SupabaseConfig {
   url: string;
   anonKey: string;
 }
 
 /**
- * Retrieves the active Supabase URL and Anon Key.
- * Checks Next.js environment variables first, then falls back to browser-stored custom config.
+ * Retrieves the active Supabase URL and Anon Key exclusively from environment variables.
  */
 export function getSupabaseConfig(): SupabaseConfig | null {
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,39 +16,16 @@ export function getSupabaseConfig(): SupabaseConfig | null {
     return { url: envUrl, anonKey: envKey };
   }
 
-  if (typeof window !== "undefined") {
-    try {
-      const stored = localStorage.getItem(CUSTOM_SUPABASE_CONFIG_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.url && parsed.anonKey) {
-          return parsed;
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
   return null;
 }
 
-export function saveCustomSupabaseConfig(url: string, anonKey: string): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(
-    CUSTOM_SUPABASE_CONFIG_KEY,
-    JSON.stringify({ url: url.trim(), anonKey: anonKey.trim() })
-  );
-  // Invalidate cached client
-  supabaseInstance = null;
-  window.dispatchEvent(new Event("clarivisit_supabase_config_change"));
-}
-
-export function clearCustomSupabaseConfig(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(CUSTOM_SUPABASE_CONFIG_KEY);
-  supabaseInstance = null;
-  window.dispatchEvent(new Event("clarivisit_supabase_config_change"));
+// Auto-purge any legacy credentials stored in browser localStorage
+if (typeof window !== "undefined") {
+  try {
+    localStorage.removeItem("clarivisit_supabase_custom_config_v1");
+  } catch {
+    // ignore
+  }
 }
 
 export function isSupabaseConfigured(): boolean {

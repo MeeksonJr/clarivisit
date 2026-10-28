@@ -201,26 +201,19 @@ export default function SettingsPrivacyPage() {
             </div>
           )}
 
-          {/* Collapsed Developer / Self-Hosted DB Settings */}
-          <details className="pt-2 border-t border-slate-200/80 dark:border-slate-800 text-xs">
-            <summary className="cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-semibold select-none flex items-center gap-1">
-              <span>Advanced Database Connection Settings</span>
-            </summary>
-            <div className="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-slate-600 dark:text-slate-400">
-              <div className="text-[11px]">
-                <strong>Active Project Ref:</strong> <code className="text-sky-600 dark:text-sky-400 font-mono">spmkbccqznfxyuhdunmj</code>
-              </div>
-              <p className="text-[11px] leading-snug">
-                PostgreSQL tables (<code className="font-mono">profiles</code>, <code className="font-mono">visits</code>, <code className="font-mono">biomarkers</code>) are secured with RLS policies restricting data access strictly to authenticated patient user IDs.
-              </p>
-              <button
-                onClick={() => setCloudModalOpen(true)}
-                className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline font-semibold"
-              >
-                Configure Custom Credentials or Copy SQL Script →
-              </button>
-            </div>
-          </details>
+          {/* Encrypted Cloud Security Notice */}
+          <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
+            <span className="flex items-center gap-1.5 text-[11px]">
+              <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Multi-device sync protected by Row Level Security (RLS) encryption</span>
+            </span>
+            <button
+              onClick={() => setCloudModalOpen(true)}
+              className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline font-semibold self-start sm:self-auto cursor-pointer"
+            >
+              {isCloudAuthenticated ? "Manage Cloud Sync →" : "Connect Cloud Account →"}
+            </button>
+          </div>
         </div>
       </div>
 

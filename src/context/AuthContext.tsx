@@ -121,12 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener("clarivisit_profile_change", profileListener);
 
-    // Listen for Supabase custom config updates
-    const configListener = () => {
-      initAuth();
-    };
-    window.addEventListener("clarivisit_supabase_config_change", configListener);
-
     // Subscribe to Supabase Auth State Changes
     const supabase = getSupabase();
     let authSub: { unsubscribe: () => void } | null = null;
@@ -163,7 +157,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       window.removeEventListener("clarivisit_profile_change", profileListener);
-      window.removeEventListener("clarivisit_supabase_config_change", configListener);
       if (authSub) authSub.unsubscribe();
     };
   }, [initAuth, syncWithCloud]);
@@ -189,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithMagicLink = async (email: string): Promise<{ error: string | null }> => {
     const supabase = getSupabase();
     if (!supabase) {
-      return { error: "Supabase cloud is not configured. Please enter your project keys in Settings." };
+      return { error: "Cloud sync is temporarily unavailable. Please try again shortly." };
     }
 
     try {
@@ -209,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithPassword = async (email: string, password: string): Promise<{ error: string | null }> => {
     const supabase = getSupabase();
     if (!supabase) {
-      return { error: "Supabase cloud is not configured. Please enter your project keys in Settings." };
+      return { error: "Cloud sync is temporarily unavailable. Please try again shortly." };
     }
 
     try {
@@ -227,7 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithPassword = async (email: string, password: string, name?: string): Promise<{ error: string | null }> => {
     const supabase = getSupabase();
     if (!supabase) {
-      return { error: "Supabase cloud is not configured. Please enter your project keys in Settings." };
+      return { error: "Cloud sync is temporarily unavailable. Please try again shortly." };
     }
 
     try {
