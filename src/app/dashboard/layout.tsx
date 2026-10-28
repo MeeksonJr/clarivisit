@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredVisits } from "@/lib/storage";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CloudAuthModal } from "@/components/CloudAuthModal";
 import {
   HeartPulse,
   LayoutDashboard,
@@ -19,7 +20,10 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Loader2
+  Loader2,
+  Cloud,
+  CloudCheck,
+  RefreshCw
 } from "lucide-react";
 
 interface NavItem {
@@ -35,10 +39,11 @@ function DashboardNavContent({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { profile } = useAuth();
+  const { profile, supabaseUser, isCloudAuthenticated, syncStatus } = useAuth();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [visitCount, setVisitCount] = useState(0);
 
   useEffect(() => {
@@ -121,25 +126,48 @@ function DashboardNavContent({
         </div>
 
         {!collapsed ? (
-          <div className="p-4 mx-3 my-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-xs shrink-0">
+          <button
+            onClick={() => setCloudModalOpen(true)}
+            className="p-3.5 mx-3 my-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-3 text-left transition-all group cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-xs shrink-0 group-hover:scale-105 transition-transform">
               {profile?.name ? profile.name.slice(0, 2).toUpperCase() : "PT"}
             </div>
-            <div className="truncate">
+            <div className="truncate min-w-0 flex-1">
               <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                 {profile?.name || "Patient"}
               </div>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
-                <ShieldCheck className="w-3 h-3" />
-                <span>Local Vault Active</span>
+              <div className="text-[10px] flex items-center gap-1 font-medium truncate mt-0.5">
+                {isCloudAuthenticated ? (
+                  syncStatus === "syncing" ? (
+                    <span className="text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                      <span>Syncing Cloud...</span>
+                    </span>
+                  ) : (
+                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <CloudCheck className="w-3 h-3" />
+                      <span>Cloud Synced</span>
+                    </span>
+                  )
+                ) : (
+                  <span className="text-slate-500 flex items-center gap-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    <Cloud className="w-3 h-3" />
+                    <span>Local Vault (Sync)</span>
+                  </span>
+                )}
               </div>
             </div>
-          </div>
+          </button>
         ) : (
           <div className="py-3 flex justify-center">
-            <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-xs">
+            <button
+              onClick={() => setCloudModalOpen(true)}
+              className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-xs hover:scale-105 transition-transform cursor-pointer"
+              title="Cloud Sync & Profile"
+            >
               {profile?.name ? profile.name.slice(0, 1).toUpperCase() : "P"}
-            </div>
+            </button>
           </div>
         )}
 
@@ -214,7 +242,23 @@ function DashboardNavContent({
             </span>
           </a>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCloudModalOpen(true)}
+            className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1.5 text-xs font-semibold"
+            title="Cloud Sync"
+          >
+            {isCloudAuthenticated ? (
+              <CloudCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <Cloud className="w-4 h-4 text-slate-500" />
+            )}
+            <span className="text-[10px]">
+              {isCloudAuthenticated ? "Synced" : "Vault"}
+            </span>
+          </button>
+          <ThemeToggle />
+        </div>
       </div>
 
       {mobileDrawerOpen && (
@@ -243,18 +287,24 @@ function DashboardNavContent({
                 </button>
               </div>
 
-              <div className="p-3 my-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center gap-2.5">
+              <button
+                onClick={() => {
+                  setMobileDrawerOpen(false);
+                  setCloudModalOpen(true);
+                }}
+                className="w-full text-left p-3 my-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors flex items-center gap-2.5"
+              >
                 <div className="w-8 h-8 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center text-xs">
                   {profile?.name ? profile.name.slice(0, 2).toUpperCase() : "PT"}
                 </div>
-                <div className="truncate">
-                  <div className="text-xs font-semibold">{profile?.name || "Patient"}</div>
-                  <div className="text-[10px] text-emerald-600 flex items-center gap-1 font-medium">
-                    <ShieldCheck className="w-3 h-3" />
-                    <span>Local Vault</span>
+                <div className="truncate flex-1">
+                  <div className="text-xs font-semibold text-slate-900 dark:text-white">{profile?.name || "Patient"}</div>
+                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                    {isCloudAuthenticated ? <CloudCheck className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                    <span>{isCloudAuthenticated ? "Cloud Synced" : "Local Vault (Sync)"}</span>
                   </div>
                 </div>
-              </div>
+              </button>
 
               <nav className="space-y-1 pt-2">
                 {navItems.map((item) => {
@@ -301,6 +351,12 @@ function DashboardNavContent({
           {children}
         </div>
       </main>
+
+      {/* Cloud Authentication & Multi-Device Sync Modal */}
+      <CloudAuthModal
+        isOpen={cloudModalOpen}
+        onClose={() => setCloudModalOpen(false)}
+      />
     </div>
   );
 }
