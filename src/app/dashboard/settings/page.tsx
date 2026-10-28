@@ -140,7 +140,7 @@ export default function SettingsPrivacyPage() {
           <div className="flex items-center gap-2">
             <Cloud className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
-              Cloud Vault & Multi-Device Sync (Supabase)
+              Cloud Account & Multi-Device Sync
             </h2>
           </div>
 
@@ -149,8 +149,7 @@ export default function SettingsPrivacyPage() {
               onClick={() => setCloudModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 transition-colors shadow-xs"
             >
-              <Server className="w-3.5 h-3.5" />
-              <span>{isCloudAuthenticated ? "Manage Cloud Vault" : "Connect Multi-Device Sync"}</span>
+              <span>{isCloudAuthenticated ? "Account & Sync Settings" : "Sign In to Cloud"}</span>
             </button>
           </div>
         </div>
@@ -159,7 +158,7 @@ export default function SettingsPrivacyPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                Cloud Sync Status
+                Account & Sync Status
               </span>
               <div className="flex items-center gap-2 mt-0.5">
                 {isCloudAuthenticated ? (
@@ -177,19 +176,23 @@ export default function SettingsPrivacyPage() {
             </div>
 
             {isCloudAuthenticated && (
-              <button
-                onClick={() => triggerManualSync()}
-                disabled={syncStatus === "syncing"}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors self-start sm:self-auto"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === "syncing" ? "animate-spin" : ""}`} />
-                <span>{syncStatus === "syncing" ? "Syncing..." : "Sync Now"}</span>
-              </button>
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <button
+                  onClick={() => triggerManualSync()}
+                  disabled={syncStatus === "syncing"}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === "syncing" ? "animate-spin" : ""}`} />
+                  <span>{syncStatus === "syncing" ? "Syncing..." : "Sync Now"}</span>
+                </button>
+              </div>
             )}
           </div>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            When multi-device sync is enabled, your after-visit summaries, biomarker laboratory tracking, and medications automatically replicate across your mobile phones, tablets, and desktop computers via Supabase PostgreSQL protected by Row-Level Security (RLS).
+            {isCloudAuthenticated
+              ? "Your after-visit summaries, biomarker lab panels, and active medications automatically synchronize with your cloud account across your mobile phone, tablet, and computer using 256-bit Row-Level Security encryption."
+              : "Sign in with your email account to enable automatic multi-device synchronization so your clinical summaries and lab trends are accessible wherever you log in."}
           </p>
 
           {lastSyncedAt && (
@@ -197,6 +200,27 @@ export default function SettingsPrivacyPage() {
               Last synced: {lastSyncedAt}
             </div>
           )}
+
+          {/* Collapsed Developer / Self-Hosted DB Settings */}
+          <details className="pt-2 border-t border-slate-200/80 dark:border-slate-800 text-xs">
+            <summary className="cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-semibold select-none flex items-center gap-1">
+              <span>Advanced Database Connection Settings</span>
+            </summary>
+            <div className="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-slate-600 dark:text-slate-400">
+              <div className="text-[11px]">
+                <strong>Active Project Ref:</strong> <code className="text-sky-600 dark:text-sky-400 font-mono">spmkbccqznfxyuhdunmj</code>
+              </div>
+              <p className="text-[11px] leading-snug">
+                PostgreSQL tables (<code className="font-mono">profiles</code>, <code className="font-mono">visits</code>, <code className="font-mono">biomarkers</code>) are secured with RLS policies restricting data access strictly to authenticated patient user IDs.
+              </p>
+              <button
+                onClick={() => setCloudModalOpen(true)}
+                className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline font-semibold"
+              >
+                Configure Custom Credentials or Copy SQL Script →
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 

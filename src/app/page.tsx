@@ -130,7 +130,7 @@ export default function LandingPage() {
                 {/* Call-to-action buttons */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
                   <Link
-                    href="/onboarding"
+                    href="/auth?mode=signup"
                     className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl text-base font-semibold text-white bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 shadow-lg shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <UploadCloud className="w-5 h-5" />
@@ -679,7 +679,7 @@ export default function LandingPage() {
             </p>
             <div className="pt-2 flex justify-center">
               <Link
-                href="/onboarding"
+                href="/auth?mode=signup"
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-bold text-white bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 shadow-xl shadow-sky-500/30 transition-all hover:scale-105"
               >
                 <UploadCloud className="w-6 h-6" />

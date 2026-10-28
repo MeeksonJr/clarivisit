@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { saveVisit } from "@/lib/storage";
 import { compressImageFile } from "@/lib/imageCompressor";
@@ -22,14 +23,23 @@ import confetti from "canvas-confetti";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { updateName, profile } = useAuth();
+  const { updateName, profile, supabaseUser, isCloudAuthenticated } = useAuth();
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [patientName, setPatientName] = useState(profile?.name || "");
+  const [patientName, setPatientName] = useState(
+    profile?.name || supabaseUser?.user_metadata?.name || ""
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Sync state if profile/user loads asynchronously
+  React.useEffect(() => {
+    if (!patientName && (profile?.name || supabaseUser?.user_metadata?.name)) {
+      setPatientName(profile?.name || supabaseUser?.user_metadata?.name || "");
+    }
+  }, [profile, supabaseUser, patientName]);
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +171,22 @@ export default function OnboardingPage() {
                   What should we call you? We use this to personalize your after-visit health plan.
                 </p>
               </div>
+
+              {isCloudAuthenticated && supabaseUser?.email && (
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Authenticated as <strong>{supabaseUser.email}</strong> • Cloud Sync Active</span>
+                </div>
+              )}
+
+              {!isCloudAuthenticated && (
+                <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300 flex items-center justify-between gap-2">
+                  <span>Want multi-device cloud backup?</span>
+                  <Link href="/auth?mode=signin" className="font-bold underline hover:text-sky-600">
+                    Sign in to your account →
+                  </Link>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label

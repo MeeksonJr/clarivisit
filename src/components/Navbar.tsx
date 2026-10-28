@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
-import { ShieldCheck, HeartPulse, Menu, X, ArrowRight, Sparkles } from "lucide-react";
+import { ShieldCheck, HeartPulse, Menu, X, ArrowRight, UserCheck, CloudCheck } from "lucide-react";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isCloudAuthenticated, supabaseUser, profile } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full glass-panel border-b border-slate-200 dark:border-slate-800 transition-colors">
@@ -43,15 +45,39 @@ export function Navbar() {
         </nav>
 
         {/* Right side actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 shadow-sm shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <span>Open Dashboard</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          {isCloudAuthenticated ? (
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800">
+                <CloudCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="max-w-[120px] truncate">{profile?.name || supabaseUser?.email?.split("@")[0]}</span>
+              </span>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 shadow-sm shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/auth?mode=signin"
+                className="px-3.5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth?mode=signup"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400 shadow-sm shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -92,15 +118,35 @@ export function Navbar() {
             <ShieldCheck className="w-5 h-5 text-emerald-500" />
             <span>Zero-Data Pledge</span>
           </a>
-          <div className="pt-2">
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileOpen(false)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-base font-semibold text-white bg-sky-600 dark:bg-sky-500 shadow-sm"
-            >
-              <span>Launch Dashboard</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            {isCloudAuthenticated ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-base font-semibold text-white bg-sky-600 dark:bg-sky-500 shadow-sm"
+              >
+                <span>Open Dashboard</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/auth?mode=signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-base font-semibold text-white bg-sky-600 dark:bg-sky-500 shadow-sm"
+                >
+                  <span>Get Started Free</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="/auth?mode=signin"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800"
+                >
+                  <span>Sign In</span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -233,18 +233,18 @@ export function CloudAuthModal({ isOpen, onClose }: CloudAuthModalProps) {
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            {isCloudAuthenticated ? "Vault Status & Sync" : "Account Authentication"}
+            {isCloudAuthenticated ? "Account & Cloud Sync" : "Sign In / Sign Up"}
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`flex-1 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-3 rounded-xl font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === "settings"
-                ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-bold"
+                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             }`}
           >
             <Server className="w-3.5 h-3.5" />
-            <span>Supabase Connection</span>
+            <span>Advanced (DB)</span>
           </button>
         </div>
 
