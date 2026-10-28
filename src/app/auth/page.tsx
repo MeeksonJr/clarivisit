@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getStoredVisits } from "@/lib/storage";
-import { isSupabaseConfigured, getSupabaseConfig, saveCustomSupabaseConfig } from "@/lib/supabase";
 import confetti from "canvas-confetti";
 import {
   HeartPulse,
@@ -22,7 +21,6 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  Server,
   Cloud
 } from "lucide-react";
 
@@ -49,15 +47,6 @@ function AuthFormContent() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-
-  // Quick fallback if user needs to connect custom Supabase anon key
-  const [showKeySetup, setShowKeySetup] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState("");
-  const [isConfigured, setIsConfigured] = useState(false);
-
-  useEffect(() => {
-    setIsConfigured(isSupabaseConfigured());
-  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -152,16 +141,6 @@ function AuthFormContent() {
       updateName(fullName.trim());
     }
     router.push("/onboarding");
-  };
-
-  const handleSaveApiKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!apiKeyInput.trim()) return;
-    const projectUrl = "https://spmkbccqznfxyuhdunmj.supabase.co";
-    saveCustomSupabaseConfig(projectUrl, apiKeyInput.trim());
-    setIsConfigured(true);
-    setShowKeySetup(false);
-    setSuccessMsg("Supabase API key configured successfully! You can now sign in or create an account.");
   };
 
   return (
@@ -399,51 +378,6 @@ function AuthFormContent() {
               Guest records are stored securely in your browser's private sandbox and will not sync across other devices.
             </p>
           </div>
-
-          {/* Optional Database Key Setup helper if not configured */}
-          {!isConfigured && (
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
-              <button
-                type="button"
-                onClick={() => setShowKeySetup(!showKeySetup)}
-                className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 hover:underline flex items-center justify-center gap-1 mx-auto"
-              >
-                <Server className="w-3 h-3" />
-                <span>Need to connect your Supabase project API key?</span>
-              </button>
-
-              {showKeySetup && (
-                <form onSubmit={handleSaveApiKey} className="mt-3 p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 text-left">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                    Supabase Public Anon Key
-                  </span>
-                  <input
-                    type="password"
-                    placeholder="eyJhbGciOi... or sb_publishable_..."
-                    value={apiKeyInput}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono"
-                  />
-                  <div className="flex items-center justify-between pt-1">
-                    <a
-                      href="https://supabase.com/dashboard/project/spmkbccqznfxyuhdunmj/settings/api"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[10px] text-sky-600 dark:text-sky-400 hover:underline"
-                    >
-                      Find Key in Supabase Dashboard ↗
-                    </a>
-                    <button
-                      type="submit"
-                      className="px-2.5 py-1 text-xs font-bold bg-sky-600 text-white rounded-lg hover:bg-sky-500"
-                    >
-                      Save Key
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          )}
         </div>
       </main>
 
