@@ -80,7 +80,7 @@ function DashboardNavContent({
       icon: Pill,
     },
     {
-      name: "Lab Orders & Fasting",
+      name: "Labs & Biomarkers",
       href: "/dashboard/labs",
       icon: FileText,
     },

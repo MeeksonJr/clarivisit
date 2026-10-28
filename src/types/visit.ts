@@ -48,6 +48,37 @@ export interface LabOrder {
   questionsForDoctor: string[];
 }
 
+export type BiomarkerStatus = "optimal" | "normal" | "low" | "elevated" | "high" | "critical";
+
+export type BiomarkerPanel =
+  | "Metabolic"
+  | "Lipid"
+  | "Hematology"
+  | "Renal"
+  | "Hepatic"
+  | "Endocrine"
+  | "Urinary"
+  | "General";
+
+export interface BiomarkerResult {
+  id: string;
+  name: string;
+  panel: BiomarkerPanel;
+  value: number;
+  unit: string;
+  minRange: number;
+  maxRange: number;
+  status: BiomarkerStatus;
+  flagText?: string;
+  plainMeaning: string;
+  whyItMatters: string;
+  lifestyleTips: string;
+  doctorDiscussPoint?: string;
+  associatedLabOrderId?: string;
+  dateRecorded: string;
+  labSource: string;
+}
+
 export interface StructuredPrescription {
   id: string;
   medicationName: string;

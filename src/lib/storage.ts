@@ -1,4 +1,4 @@
-import { ParsedVisitRecord, UserProfile, StructuredPrescription, LabOrder } from "@/types/visit";
+import { ParsedVisitRecord, UserProfile, StructuredPrescription, LabOrder, BiomarkerResult } from "@/types/visit";
 
 const VISITS_STORAGE_KEY = "clarivisit_patient_records_v1";
 const PROFILE_STORAGE_KEY = "clarivisit_user_profile_v1";
@@ -403,4 +403,56 @@ export function saveFastingTimerConfig(config: FastingTimerConfig | null): void 
     localStorage.setItem(FASTING_TIMER_STORAGE_KEY, JSON.stringify(config));
   }
   window.dispatchEvent(new Event("clarivisit_fasting_timer_change"));
+}
+
+// =========================================================================
+// BIOMARKER RESULTS & REFERENCE SPECTRUM STORAGE
+// =========================================================================
+
+const BIOMARKERS_STORAGE_KEY = "clarivisit_biomarkers_v1";
+
+export function getBiomarkerResults(): BiomarkerResult[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(BIOMARKERS_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveBiomarkerResult(biomarker: BiomarkerResult): void {
+  if (typeof window === "undefined") return;
+  const current = getBiomarkerResults();
+  const filtered = current.filter((item) => item.id !== biomarker.id);
+  const updated = [biomarker, ...filtered];
+  localStorage.setItem(BIOMARKERS_STORAGE_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("clarivisit_biomarkers_change"));
+}
+
+export function saveBulkBiomarkers(biomarkers: BiomarkerResult[]): void {
+  if (typeof window === "undefined") return;
+  const current = getBiomarkerResults();
+  // Merge, updating existing ones with matching IDs
+  const map = new Map<string, BiomarkerResult>();
+  current.forEach((b) => map.set(b.id, b));
+  biomarkers.forEach((b) => map.set(b.id, b));
+  const merged = Array.from(map.values());
+  localStorage.setItem(BIOMARKERS_STORAGE_KEY, JSON.stringify(merged));
+  window.dispatchEvent(new Event("clarivisit_biomarkers_change"));
+}
+
+export function deleteBiomarkerResult(id: string): void {
+  if (typeof window === "undefined") return;
+  const current = getBiomarkerResults();
+  const updated = current.filter((item) => item.id !== id);
+  localStorage.setItem(BIOMARKERS_STORAGE_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("clarivisit_biomarkers_change"));
+}
+
+export function clearBiomarkerResults(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(BIOMARKERS_STORAGE_KEY);
+  window.dispatchEvent(new Event("clarivisit_biomarkers_change"));
 }
