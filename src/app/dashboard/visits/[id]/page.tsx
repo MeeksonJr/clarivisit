@@ -7,6 +7,7 @@ import { ParsedVisitRecord, RecipeItem } from "@/types/visit";
 import { RecipeCard } from "@/components/RecipeCard";
 import { RecipeModal } from "@/components/RecipeModal";
 import { EmailDigestModal } from "@/components/EmailDigestModal";
+import { HealthPassportModal } from "@/components/HealthPassportModal";
 import { DEFAULT_CLINICAL_RECIPES } from "@/lib/recipes";
 import {
   HeartPulse,
@@ -34,6 +35,7 @@ import {
   ChevronUp,
   ChefHat,
   Mail,
+  Printer,
 } from "lucide-react";
 
 function VisitDetailsContent() {
@@ -58,6 +60,7 @@ function VisitDetailsContent() {
   const [copiedDraft, setCopiedDraft] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeItem | null>(null);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [passportModalOpen, setPassportModalOpen] = useState(false);
 
   useEffect(() => {
     if (visitId) {
@@ -216,6 +219,15 @@ END:VCALENDAR`;
           >
             <Mail className="w-4 h-4 text-teal-600 dark:text-teal-400" />
             <span className="hidden sm:inline">Email Care Plan</span>
+          </button>
+
+          <button
+            onClick={() => setPassportModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-xs"
+            title="Open printable Clinical Health Passport"
+          >
+            <Printer className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <span className="hidden sm:inline">Health Passport</span>
           </button>
 
           {visit.followUps && visit.followUps.length > 0 && (
@@ -838,6 +850,13 @@ END:VCALENDAR`;
       <EmailDigestModal
         isOpen={emailModalOpen}
         onClose={() => setEmailModalOpen(false)}
+        visit={visit}
+      />
+
+      {/* Health Passport Modal */}
+      <HealthPassportModal
+        isOpen={passportModalOpen}
+        onClose={() => setPassportModalOpen(false)}
         visit={visit}
       />
     </div>

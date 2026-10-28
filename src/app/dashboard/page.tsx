@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getStoredVisits, saveVisit } from "@/lib/storage";
 import { ParsedVisitRecord } from "@/types/visit";
 import { useAuth } from "@/context/AuthContext";
@@ -20,7 +21,8 @@ import {
   Plus,
   AlertCircle,
   FileClock,
-  Sparkles
+  Sparkles,
+  Printer
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -303,13 +305,25 @@ export default function DashboardOverviewPage() {
             </p>
           </div>
 
-          <button
-            onClick={() => router.push(`/dashboard/visits/${latestVisit.id}`)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors shrink-0"
-          >
-            <span>View Full Breakdown</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/visits/${latestVisit.id}/passport`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors shrink-0 shadow-xs"
+              title="Print Clinical Health Passport"
+            >
+              <Printer className="w-3.5 h-3.5 text-slate-500" />
+              <span>Passport</span>
+            </Link>
+
+            <button
+              onClick={() => router.push(`/dashboard/visits/${latestVisit.id}`)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors shrink-0"
+            >
+              <span>View Full Breakdown</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Executive summary quote */}
